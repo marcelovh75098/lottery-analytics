@@ -1,5 +1,5 @@
 import streamlit as st
-from database.db import get_total_draws
+from database.db import get_total_draws, insert_test_draw
 
 st.set_page_config(
     page_title="Lottery Analytics",
