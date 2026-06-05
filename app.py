@@ -1,5 +1,7 @@
 import streamlit as st
 from database.db import get_total_draws, insert_test_draw
+from scrapers.baloto_scraper import obtener_ultimo_sorteo
+from database.db import insert_draw
 
 st.set_page_config(
     page_title="Lottery Analytics",
