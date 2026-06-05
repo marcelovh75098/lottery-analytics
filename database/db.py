@@ -1,6 +1,7 @@
 import sqlite3
 import os
 
+
 DB_NAME = "data/lottery.db"
 
 def create_database():
@@ -62,3 +63,54 @@ def insert_test_draw():
         pass
 
     conn.close()
+def insert_draw(
+    fecha,
+    n1,
+    n2,
+    n3,
+    n4,
+    n5,
+    superbalota
+):
+
+    conn = sqlite3.connect(DB_NAME)
+
+    cursor = conn.cursor()
+
+    try:
+
+        cursor.execute("""
+        INSERT INTO baloto_draws
+        (
+            draw_date,
+            n1,
+            n2,
+            n3,
+            n4,
+            n5,
+            superbalota
+        )
+        VALUES
+        (?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            fecha,
+            n1,
+            n2,
+            n3,
+            n4,
+            n5,
+            superbalota
+        ))
+
+        conn.commit()
+
+        return True
+
+    except:
+
+        return False
+
+    finally:
+
+        conn.close()
