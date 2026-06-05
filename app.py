@@ -41,4 +41,5 @@ st.markdown("---")
 st.subheader("Administración")
 
 if st.button("Actualizar datos Baloto"):
-    st.info("Función de actualización en construcción")
+    st.success("Botón funcionando correctamente")
+                    
