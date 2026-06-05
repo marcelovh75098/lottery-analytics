@@ -41,5 +41,8 @@ st.markdown("---")
 st.subheader("Administración")
 
 if st.button("Actualizar datos Baloto"):
-    st.success("Botón funcionando correctamente")
+
+    insert_test_draw()
+
+    st.success("Registro de prueba insertado")
                     
