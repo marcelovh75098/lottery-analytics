@@ -7,11 +7,17 @@ st.set_page_config(
     layout="wide"
 )
 
-total_draws = get_total_draws()
-
 st.title("🎯 Lottery Analytics")
 
 st.markdown("---")
+
+if st.button("Actualizar datos Baloto"):
+
+    resultado = insert_test_draw()
+
+    st.success(f"Resultado: {resultado}")
+
+total_draws = get_total_draws()
 
 col1, col2, col3 = st.columns(3)
 
@@ -36,13 +42,3 @@ with col3:
 st.markdown("---")
 
 st.success("Base de datos conectada correctamente")
-st.markdown("---")
-
-st.subheader("Administración")
-
-if st.button("Actualizar datos Baloto"):
-
-    insert_test_draw()
-
-    st.success("Registro de prueba insertado")
-                    
