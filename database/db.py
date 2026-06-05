@@ -43,7 +43,6 @@ def get_total_draws():
     conn.close()
 
     return total
-
 def insert_test_draw():
 
     conn = sqlite3.connect(DB_NAME)
@@ -54,25 +53,7 @@ def insert_test_draw():
 
         cursor.execute("""
         INSERT INTO baloto_draws
-        (
-            draw_date,
-            n1,
-            n2,
-            n3,
-            n4,
-            n5,
-            superbalota
-        )
-        VALUES
-        (
-            '2026-01-01',
-            1,
-            2,
-            3,
-            4,
-            5,
-            6
-        )
+        ...
         """)
 
         conn.commit()
@@ -81,5 +62,3 @@ def insert_test_draw():
         pass
 
     conn.close()
-
-create_database()
