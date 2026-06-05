@@ -1,18 +1,37 @@
 import requests
 from bs4 import BeautifulSoup
 
-URL = "https://www.baloto.com/filtro-historico-de-resultados"
+URL = "https://www.baloto.com/resultados"
 
-def test_connection():
+def obtener_ultimo_sorteo():
 
-    response = requests.get(URL, timeout=30)
+    try:
 
-    print("STATUS:", response.status_code)
+        response = requests.get(
+            URL,
+            timeout=30
+        )
 
-    soup = BeautifulSoup(response.text, "html.parser")
+        if response.status_code != 200:
+            return None
 
-    print("TITULO PAGINA:")
-    print(soup.title.text if soup.title else "Sin titulo")
+        soup = BeautifulSoup(
+            response.text,
+            "html.parser"
+        )
 
-if __name__ == "__main__":
-    test_connection()
+        return {
+            "fecha": "pendiente",
+            "n1": 0,
+            "n2": 0,
+            "n3": 0,
+            "n4": 0,
+            "n5": 0,
+            "superbalota": 0
+        }
+
+    except Exception as e:
+
+        print(e)
+
+        return None
