@@ -36,3 +36,9 @@ with col3:
 st.markdown("---")
 
 st.success("Base de datos conectada correctamente")
+st.markdown("---")
+
+st.subheader("Administración")
+
+if st.button("Actualizar datos Baloto"):
+    st.info("Función de actualización en construcción")
