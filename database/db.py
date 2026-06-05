@@ -1,7 +1,13 @@
 import sqlite3
+import os
+
+DB_NAME = "data/lottery.db"
 
 def create_database():
-    conn = sqlite3.connect("data/lottery.db")
+
+    os.makedirs("data", exist_ok=True)
+
+    conn = sqlite3.connect(DB_NAME)
 
     cursor = conn.cursor()
 
@@ -14,13 +20,15 @@ def create_database():
         n3 INTEGER,
         n4 INTEGER,
         n5 INTEGER,
-        superbalota INTEGER
+        superbalota INTEGER,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
     """)
 
     conn.commit()
     conn.close()
 
+    print("Base de datos creada correctamente")
+
 if __name__ == "__main__":
     create_database()
-    print("Base de datos creada correctamente")
