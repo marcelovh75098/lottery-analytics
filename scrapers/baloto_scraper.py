@@ -4,64 +4,45 @@ from bs4 import BeautifulSoup
 URL = "https://www.baloto.com/resultados"
 
 def obtener_ultimo_sorteo():
-
     try:
+        response = requests.get(URL, timeout=10)
+        response.raise_for_status()
 
-        response = requests.get(
-            URL,
-            timeout=30
-        )
+        soup = BeautifulSoup(response.text, "html.parser")
 
-        soup = BeautifulSoup(
-            response.text,
-            "html.parser"
-        )
+        # Buscar la primera fila del sorteo (ajustado a estructura real)
+        tabla = soup.find("table")
+        fila = tabla.find("tr")
 
-        tabla = soup.find(
-            "table",
-            {"id": "results-table"}
-        )
+        celdas = fila.find_all("td")
 
-        if tabla is None:
-            return {
-                "error": "No se encontró results-table"
-            }
+        if len(celdas) < 7:
+            print("❌ No se pudo leer el sorteo correctamente")
+            return None
 
-        filas = tabla.find_all("tr")
+        fecha = celdas[0].get_text(strip=True)
 
-        if len(filas) <= 1:
-            return {
-                "error": "No se encontraron sorteos"
-            }
+        n1 = int(celdas[1].get_text(strip=True))
+        n2 = int(celdas[2].get_text(strip=True))
+        n3 = int(celdas[3].get_text(strip=True))
+        n4 = int(celdas[4].get_text(strip=True))
+        n5 = int(celdas[5].get_text(strip=True))
 
-        fila = filas[1]
+        superbalota = int(celdas[6].get_text(strip=True))
 
-        columnas = fila.find_all("td")
-
-        fecha = columnas[1].get_text(strip=True)
-
-        resultado_texto = columnas[2].get_text(
-            separator=" ",
-            strip=True
-        )
-
-        numeros = resultado_texto.replace(
-            "-",
-            " "
-        ).split()
-
-        return {
+        resultado = {
             "fecha": fecha,
-            "n1": int(numeros[0]),
-            "n2": int(numeros[1]),
-            "n3": int(numeros[2]),
-            "n4": int(numeros[3]),
-            "n5": int(numeros[4]),
-            "superbalota": int(numeros[5])
+            "n1": n1,
+            "n2": n2,
+            "n3": n3,
+            "n4": n4,
+            "n5": n5,
+            "superbalota": superbalota
         }
+
+        print("✅ Sorteo extraído correctamente:", resultado)
+        return resultado
 
     except Exception as e:
-
-        return {
-            "error": str(e)
-        }
+        print("❌ Error en scraper:", e)
+        return None
