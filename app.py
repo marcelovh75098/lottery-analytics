@@ -3,10 +3,13 @@ import streamlit as st
 from database.db import (
     create_database,
     get_total_draws,
-    insert_draw
+    insert_draw,
+    get_all_draws
 )
 
-from scrapers.baloto_scraper import obtener_ultimo_sorteo
+from scrapers.baloto_scraper import (
+    obtener_ultimo_sorteo
+)
 
 create_database()
 
@@ -40,10 +43,12 @@ if st.button("Actualizar datos Baloto"):
             int(resultado["superbalota"])
         )
 
-        st.write(resultado)
+        st.json(resultado)
 
         if guardado:
-            st.success("✅ Sorteo guardado correctamente")
+            st.success(
+                "✅ Sorteo guardado correctamente"
+            )
         else:
             st.warning(
                 "⚠️ El sorteo ya existe en la base de datos o ocurrió un error"
@@ -73,4 +78,25 @@ with col3:
 
 st.markdown("---")
 
-st.success("Base de datos conectada correctamente")
+st.subheader("📋 Histórico de Sorteos")
+
+draws = get_all_draws()
+
+if len(draws) > 0:
+
+    st.dataframe(
+        draws,
+        use_container_width=True
+    )
+
+else:
+
+    st.info(
+        "No hay sorteos almacenados todavía."
+    )
+
+st.markdown("---")
+
+st.success(
+    "Base de datos conectada correctamente"
+)
