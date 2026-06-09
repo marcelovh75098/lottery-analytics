@@ -29,8 +29,14 @@ def obtener_ultimo_sorteo():
 
         filas = tabla.find_all("tr")
 
+        if len(filas) > 0:
+
+            return {
+                "html_primera_fila": str(filas[0])
+            }
+
         return {
-            "filas_encontradas": len(filas)
+            "error": "No se encontraron filas"
         }
 
     except Exception as e:
