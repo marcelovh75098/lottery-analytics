@@ -14,7 +14,6 @@ create_database()
 st.set_page_config(
     page_title="Lottery Analytics",
     page_icon="🎯",
-    st.write("VERSION SCRAPER TEST V2"),
     layout="wide"
 )
 
