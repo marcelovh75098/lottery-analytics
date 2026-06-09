@@ -1,7 +1,7 @@
 import streamlit as st
 
+from database.db import get_total_draws, insert_draw
 from scrapers.baloto_scraper import obtener_ultimo_sorteo
-from database.db import insert_draw, get_total_draws
 
 st.set_page_config(
     page_title="Lottery Analytics",
@@ -13,36 +13,36 @@ st.title("🎯 Lottery Analytics")
 
 st.markdown("---")
 
-# 📊 Estadística básica
-total = get_total_draws()
-st.metric("Sorteos guardados", total)
-
-st.markdown("## 🔄 Actualizar datos Baloto")
-
+# =========================
+# BOTÓN PRINCIPAL
+# =========================
 if st.button("Actualizar datos Baloto"):
 
-    resultado = obtener_ultimo_sorteo()
+    resultado = insert_draw()
 
-    if resultado:
-
-        insert_draw(
-            resultado["fecha"],
-            resultado["n1"],
-            resultado["n2"],
-            resultado["n3"],
-            resultado["n4"],
-            resultado["n5"],
-            resultado["superbalota"]
-        )
-
-        st.success("✅ Sorteo guardado correctamente")
-
-        st.json(resultado)
+    # 🔒 PROTECCIÓN CONTRA NoneType
+    if resultado is None:
+        st.error("Error: la función no devolvió ninguna respuesta (None)")
+    
+    elif isinstance(resultado, dict) and "error" in resultado:
+        st.error(resultado["error"])
 
     else:
-        st.error("❌ No se pudo obtener el sorteo")
+        st.success("Datos actualizados correctamente")
+        st.write(resultado)
 
 st.markdown("---")
-st.subheader("📈 Sorteos Analizados")
 
-st.info("Próximo paso: análisis de números calientes y predicción IA")
+# =========================
+# TOTAL DE SORTEOS
+# =========================
+try:
+    total = get_total_draws()
+
+    if total is None:
+        st.warning("No se pudo obtener el total de sorteos")
+    else:
+        st.metric("Total sorteos guardados", total)
+
+except Exception as e:
+    st.error(f"Error cargando datos: {str(e)}")
