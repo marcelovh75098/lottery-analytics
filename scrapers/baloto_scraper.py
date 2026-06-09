@@ -30,32 +30,22 @@ def obtener_ultimo_sorteo():
 
         filas = tabla.find_all("tr")
 
-        if len(filas) <= 1:
-            return {
-                "error": "No se encontraron sorteos"
-            }
+        filas_info = []
 
-        fila = filas[1]
+        for i, fila in enumerate(filas):
 
-        columnas = fila.find_all("td")
-
-        fecha = columnas[1].get_text(strip=True)
-
-        resultado_texto = columnas[2].get_text(
-            separator=" ",
-            strip=True
-        )
-
-        numeros = resultado_texto.replace("-", " ").split()
+            filas_info.append(
+                {
+                    "fila": i,
+                    "columnas": len(
+                        fila.find_all("td")
+                    )
+                }
+            )
 
         return {
-            "fecha": fecha,
-            "n1": numeros[0],
-            "n2": numeros[1],
-            "n3": numeros[2],
-            "n4": numeros[3],
-            "n5": numeros[4],
-            "superbalota": numeros[5]
+            "total_filas": len(filas),
+            "detalle": filas_info
         }
 
     except Exception as e:
