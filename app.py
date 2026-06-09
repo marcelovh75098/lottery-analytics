@@ -14,35 +14,50 @@ st.title("🎯 Lottery Analytics")
 st.markdown("---")
 
 # =========================
-# BOTÓN PRINCIPAL
+# BOTÓN ACTUALIZAR
 # =========================
 if st.button("Actualizar datos Baloto"):
 
-    resultado = insert_draw()
+    data = obtener_ultimo_sorteo()
 
-    # 🔒 PROTECCIÓN CONTRA NoneType
-    if resultado is None:
-        st.error("Error: la función no devolvió ninguna respuesta (None)")
-    
-    elif isinstance(resultado, dict) and "error" in resultado:
-        st.error(resultado["error"])
+    # 🔒 validación segura
+    if data is None:
+        st.error("El scraper no devolvió datos")
+        st.stop()
 
-    else:
-        st.success("Datos actualizados correctamente")
+    if isinstance(data, dict) and "error" in data:
+        st.error(data["error"])
+        st.stop()
+
+    try:
+        resultado = insert_draw(
+            data["draw_date"],
+            data["n1"],
+            data["n2"],
+            data["n3"],
+            data["n4"],
+            data["n5"],
+            data["superbalota"]
+        )
+
+        st.success("Sorteo guardado correctamente")
         st.write(resultado)
+
+    except Exception as e:
+        st.error(f"Error insertando en DB: {str(e)}")
 
 st.markdown("---")
 
 # =========================
-# TOTAL DE SORTEOS
+# TOTAL SORTEOS
 # =========================
 try:
     total = get_total_draws()
 
     if total is None:
-        st.warning("No se pudo obtener el total de sorteos")
+        st.warning("No hay datos aún")
     else:
-        st.metric("Total sorteos guardados", total)
+        st.metric("Total sorteos", total)
 
 except Exception as e:
-    st.error(f"Error cargando datos: {str(e)}")
+    st.error(f"Error: {str(e)}")
