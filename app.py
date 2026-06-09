@@ -1,7 +1,16 @@
 import streamlit as st
-from database.db import get_total_draws, insert_test_draw
+
+from database.db import (
+    create_database,
+    get_total_draws,
+    insert_test_draw,
+    insert_draw
+)
+
 from scrapers.baloto_scraper import obtener_ultimo_sorteo
-from database.db import insert_draw
+
+# Crear base de datos y tabla al iniciar
+create_database()
 
 st.set_page_config(
     page_title="Lottery Analytics",
@@ -44,3 +53,4 @@ with col3:
 st.markdown("---")
 
 st.success("Base de datos conectada correctamente")
+ 
