@@ -8,7 +8,6 @@ from database.db import (
 
 from scrapers.baloto_scraper import obtener_ultimo_sorteo
 
-# Crear base de datos al iniciar
 create_database()
 
 st.set_page_config(
@@ -21,12 +20,34 @@ st.title("🎯 Lottery Analytics")
 
 st.markdown("---")
 
-# Botón de prueba del scraper
 if st.button("Actualizar datos Baloto"):
 
     resultado = obtener_ultimo_sorteo()
 
-    st.write(resultado)
+    if "error" in resultado:
+
+        st.error(resultado["error"])
+
+    else:
+
+        guardado = insert_draw(
+            resultado["fecha"],
+            int(resultado["n1"]),
+            int(resultado["n2"]),
+            int(resultado["n3"]),
+            int(resultado["n4"]),
+            int(resultado["n5"]),
+            int(resultado["superbalota"])
+        )
+
+        st.write(resultado)
+
+        if guardado:
+            st.success("✅ Sorteo guardado correctamente")
+        else:
+            st.warning(
+                "⚠️ El sorteo ya existe en la base de datos o ocurrió un error"
+            )
 
 total_draws = get_total_draws()
 
