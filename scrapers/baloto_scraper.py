@@ -12,26 +12,29 @@ def obtener_ultimo_sorteo():
             timeout=30
         )
 
-        if response.status_code != 200:
-            return None
-
         soup = BeautifulSoup(
             response.text,
             "html.parser"
         )
 
+        tabla = soup.find(
+            "table",
+            {"id": "results-table"}
+        )
+
+        if tabla is None:
+            return {
+                "error": "No se encontró results-table"
+            }
+
+        filas = tabla.find_all("tr")
+
         return {
-            "fecha": "pendiente",
-            "n1": 0,
-            "n2": 0,
-            "n3": 0,
-            "n4": 0,
-            "n5": 0,
-            "superbalota": 0
+            "filas_encontradas": len(filas)
         }
 
     except Exception as e:
 
-        print(e)
-
-        return None
+        return {
+            "error": str(e)
+        }
