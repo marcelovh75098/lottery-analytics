@@ -1,4 +1,4 @@
-writing{variant="document" id="84173"}
+
 import requests
 from bs4 import BeautifulSoup
 
