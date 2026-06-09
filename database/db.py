@@ -3,10 +3,11 @@ import sqlite3
 DB_NAME = "lottery.db"
 
 
-def create_database():
-
+# =========================
+# CREAR TABLA (OBLIGATORIO)
+# =========================
+def init_db():
     conn = sqlite3.connect(DB_NAME)
-
     cursor = conn.cursor()
 
     cursor.execute("""
@@ -26,64 +27,40 @@ def create_database():
     conn.close()
 
 
-def insert_draw(
-    draw_date,
-    n1,
-    n2,
-    n3,
-    n4,
-    n5,
-    superbalota
-):
+# =========================
+# INSERTAR SORTEO
+# =========================
+def insert_draw(draw_date, n1, n2, n3, n4, n5, superbalota):
 
     try:
-
         conn = sqlite3.connect(DB_NAME)
-
         cursor = conn.cursor()
 
         cursor.execute("""
-            INSERT INTO baloto_draws (
-                draw_date,
-                n1,
-                n2,
-                n3,
-                n4,
-                n5,
-                superbalota
+            INSERT OR IGNORE INTO baloto_draws (
+                draw_date, n1, n2, n3, n4, n5, superbalota
             )
             VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, (
-            draw_date,
-            n1,
-            n2,
-            n3,
-            n4,
-            n5,
-            superbalota
-        ))
+        """, (draw_date, n1, n2, n3, n4, n5, superbalota))
 
         conn.commit()
         conn.close()
 
-        return True
+        return {"ok": True}
 
-    except Exception:
+    except Exception as e:
+        return {"error": str(e)}
 
-        return False
 
-
+# =========================
+# TOTAL DE SORTEOS
+# =========================
 def get_total_draws():
 
     conn = sqlite3.connect(DB_NAME)
-
     cursor = conn.cursor()
 
-    cursor.execute("""
-        SELECT COUNT(*)
-        FROM baloto_draws
-    """)
-
+    cursor.execute("SELECT COUNT(*) FROM baloto_draws")
     total = cursor.fetchone()[0]
 
     conn.close()
@@ -91,27 +68,22 @@ def get_total_draws():
     return total
 
 
+# =========================
+# LISTAR SORTEOS
+# =========================
 def get_all_draws():
 
     conn = sqlite3.connect(DB_NAME)
-
     cursor = conn.cursor()
 
     cursor.execute("""
-        SELECT
-            draw_date,
-            n1,
-            n2,
-            n3,
-            n4,
-            n5,
-            superbalota
+        SELECT draw_date, n1, n2, n3, n4, n5, superbalota
         FROM baloto_draws
         ORDER BY id DESC
+        LIMIT 50
     """)
 
     data = cursor.fetchall()
-
     conn.close()
 
     return data
