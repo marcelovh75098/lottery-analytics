@@ -1,8 +1,8 @@
 import sqlite3
 import os
 
-
 DB_NAME = "data/lottery.db"
+
 
 def create_database():
 
@@ -29,7 +29,10 @@ def create_database():
     conn.commit()
     conn.close()
 
+
 def get_total_draws():
+
+    create_database()
 
     conn = sqlite3.connect(DB_NAME)
 
@@ -44,7 +47,11 @@ def get_total_draws():
     conn.close()
 
     return total
+
+
 def insert_test_draw():
+
+    create_database()
 
     conn = sqlite3.connect(DB_NAME)
 
@@ -53,16 +60,43 @@ def insert_test_draw():
     try:
 
         cursor.execute("""
-        INSERT INTO baloto_draws
-        ...
+        INSERT OR IGNORE INTO baloto_draws
+        (
+            draw_date,
+            n1,
+            n2,
+            n3,
+            n4,
+            n5,
+            superbalota
+        )
+        VALUES
+        (
+            '2026-01-01',
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+        )
         """)
 
         conn.commit()
 
-    except:
-        pass
+        return True
 
-    conn.close()
+    except Exception as e:
+
+        print(f"Error insertando sorteo de prueba: {e}")
+
+        return False
+
+    finally:
+
+        conn.close()
+
+
 def insert_draw(
     fecha,
     n1,
@@ -72,6 +106,8 @@ def insert_draw(
     n5,
     superbalota
 ):
+
+    create_database()
 
     conn = sqlite3.connect(DB_NAME)
 
@@ -107,7 +143,9 @@ def insert_draw(
 
         return True
 
-    except:
+    except Exception as e:
+
+        print(f"Error insertando sorteo: {e}")
 
         return False
 
