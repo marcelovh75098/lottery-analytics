@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 
 URL = "https://www.baloto.com/resultados"
 
+
 def obtener_ultimo_sorteo():
 
     try:
@@ -29,14 +30,14 @@ def obtener_ultimo_sorteo():
 
         filas = tabla.find_all("tr")
 
-        if len(filas) > 0:
+        if len(filas) > 1:
 
             return {
-                "html_primera_fila": str(filas[0])
+                "html_primer_sorteo": str(filas[1])
             }
 
         return {
-            "error": "No se encontraron filas"
+            "error": "No se encontraron sorteos"
         }
 
     except Exception as e:
