@@ -5,62 +5,14 @@ DB_NAME = "lottery.db"
 
 
 # =========================
-# INIT DB
+# OBTENER HISTORIAL
 # =========================
-def init_db():
+def get_draws():
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
 
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS baloto_draws (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            draw_date TEXT UNIQUE,
-            n1 INTEGER,
-            n2 INTEGER,
-            n3 INTEGER,
-            n4 INTEGER,
-            n5 INTEGER,
-            superbalota INTEGER
-        )
-    """)
-
-    conn.commit()
-    conn.close()
-
-
-# =========================
-# INSERT
-# =========================
-def insert_draw(draw_date, n1, n2, n3, n4, n5, superbalota):
-    try:
-        conn = sqlite3.connect(DB_NAME)
-        cursor = conn.cursor()
-
-        cursor.execute("""
-            INSERT OR IGNORE INTO baloto_draws (
-                draw_date, n1, n2, n3, n4, n5, superbalota
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, (draw_date, n1, n2, n3, n4, n5, superbalota))
-
-        conn.commit()
-        conn.close()
-
-        return {"ok": True}
-
-    except Exception as e:
-        return {"error": str(e)}
-
-
-# =========================
-# TRAER SORTEOS ORDENADOS
-# =========================
-def get_draws_ordered():
-    conn = sqlite3.connect(DB_NAME)
-    cursor = conn.cursor()
-
-    cursor.execute("""
-        SELECT draw_date, n1, n2, n3, n4, n5, superbalota
+        SELECT n1,n2,n3,n4,n5,superbalota
         FROM baloto_draws
         ORDER BY id ASC
     """)
@@ -72,58 +24,41 @@ def get_draws_ordered():
 
 
 # =========================
-# PREDICCIÓN (VENTANA MÓVIL)
+# CREAR FEATURES
 # =========================
-def predict_from_history(history_window):
+def create_features(window):
 
     numbers = []
-    for row in history_window:
-        numbers.extend(row[1:])  # ignoramos fecha
+    for row in window:
+        numbers.extend(row)
 
     counter = Counter(numbers)
 
-    return [num for num, _ in counter.most_common(6)]
+    # vector de features (simplificado pero potente)
+    features = [
+        counter.get(i, 0) for i in range(1, 51)  # números 1–50
+    ]
+
+    return features
 
 
 # =========================
-# EVALUAR
+# DATASET ML
 # =========================
-def evaluate(prediction, real):
+def build_dataset(window_size=20):
 
-    hits = len(set(prediction) & set(real))
-    score = (hits / 6) * 100
+    data = get_draws()
 
-    return hits, round(score, 2)
-
-
-# =========================
-# BACKTESTING COMPLETO
-# =========================
-def run_backtest(window_size=20):
-
-    data = get_draws_ordered()
-
-    results = []
+    X = []
+    y = []
 
     for i in range(window_size, len(data)):
 
-        # ventana histórica
         window = data[i-window_size:i]
 
-        # predicción
-        pred = predict_from_history(window)
+        X.append(create_features(window))
 
-        # resultado real
-        real = data[i][1:]
+        # target: sorteo actual
+        y.append(data[i])
 
-        hits, score = evaluate(pred, real)
-
-        results.append({
-            "index": i,
-            "prediction": pred,
-            "real": real,
-            "hits": hits,
-            "score": score
-        })
-
-    return results
+    return X, y
