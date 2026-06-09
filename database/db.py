@@ -1,10 +1,11 @@
 import sqlite3
+from collections import Counter
 
 DB_NAME = "lottery.db"
 
 
 # =========================
-# CREAR TABLA (OBLIGATORIO)
+# INIT DB
 # =========================
 def init_db():
     conn = sqlite3.connect(DB_NAME)
@@ -28,10 +29,9 @@ def init_db():
 
 
 # =========================
-# INSERTAR SORTEO
+# INSERT
 # =========================
 def insert_draw(draw_date, n1, n2, n3, n4, n5, superbalota):
-
     try:
         conn = sqlite3.connect(DB_NAME)
         cursor = conn.cursor()
@@ -53,37 +53,77 @@ def insert_draw(draw_date, n1, n2, n3, n4, n5, superbalota):
 
 
 # =========================
-# TOTAL DE SORTEOS
+# TRAER SORTEOS ORDENADOS
 # =========================
-def get_total_draws():
-
-    conn = sqlite3.connect(DB_NAME)
-    cursor = conn.cursor()
-
-    cursor.execute("SELECT COUNT(*) FROM baloto_draws")
-    total = cursor.fetchone()[0]
-
-    conn.close()
-
-    return total
-
-
-# =========================
-# LISTAR SORTEOS
-# =========================
-def get_all_draws():
-
+def get_draws_ordered():
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
 
     cursor.execute("""
         SELECT draw_date, n1, n2, n3, n4, n5, superbalota
         FROM baloto_draws
-        ORDER BY id DESC
-        LIMIT 50
+        ORDER BY id ASC
     """)
 
     data = cursor.fetchall()
     conn.close()
 
     return data
+
+
+# =========================
+# PREDICCIÓN (VENTANA MÓVIL)
+# =========================
+def predict_from_history(history_window):
+
+    numbers = []
+    for row in history_window:
+        numbers.extend(row[1:])  # ignoramos fecha
+
+    counter = Counter(numbers)
+
+    return [num for num, _ in counter.most_common(6)]
+
+
+# =========================
+# EVALUAR
+# =========================
+def evaluate(prediction, real):
+
+    hits = len(set(prediction) & set(real))
+    score = (hits / 6) * 100
+
+    return hits, round(score, 2)
+
+
+# =========================
+# BACKTESTING COMPLETO
+# =========================
+def run_backtest(window_size=20):
+
+    data = get_draws_ordered()
+
+    results = []
+
+    for i in range(window_size, len(data)):
+
+        # ventana histórica
+        window = data[i-window_size:i]
+
+        # predicción
+        pred = predict_from_history(window)
+
+        # resultado real
+        real = data[i][1:]
+
+        hits, score = evaluate(pred, real)
+
+        results.append({
+            "index": i,
+            "prediction": pred,
+            "real": real,
+            "hits": hits,
+            "score": score
+        })
+
+    return results
