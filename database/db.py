@@ -28,7 +28,7 @@ def create_database():
 
 
 # =========================
-# INIT (OBLIGATORIO EN RENDER)
+# INIT DB
 # =========================
 def init_db():
     create_database()
@@ -39,54 +39,42 @@ def init_db():
 # =========================
 def insert_draw(draw_date, n1, n2, n3, n4, n5, superbalota):
 
-    try:
-        conn = sqlite3.connect(DB_NAME)
-        cursor = conn.cursor()
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
 
-        cursor.execute("""
-            INSERT OR IGNORE INTO baloto_draws (
-                draw_date, n1, n2, n3, n4, n5, superbalota
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, (draw_date, n1, n2, n3, n4, n5, superbalota))
+    cursor.execute("""
+        INSERT OR IGNORE INTO baloto_draws (
+            draw_date, n1, n2, n3, n4, n5, superbalota
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    """, (draw_date, n1, n2, n3, n4, n5, superbalota))
 
-        conn.commit()
-        conn.close()
-
-        return {"status": "ok"}
-
-    except Exception as e:
-        return {"status": "error", "message": str(e)}
+    conn.commit()
+    conn.close()
 
 
 # =========================
-# OBTENER SORTEOS (SAFE)
+# OBTENER DATOS
 # =========================
 def get_all_draws():
 
-    try:
-        conn = sqlite3.connect(DB_NAME)
-        cursor = conn.cursor()
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
 
-        cursor.execute("""
-            SELECT n1, n2, n3, n4, n5, superbalota
-            FROM baloto_draws
-            ORDER BY id ASC
-        """)
+    cursor.execute("""
+        SELECT n1, n2, n3, n4, n5, superbalota
+        FROM baloto_draws
+        ORDER BY id ASC
+    """)
 
-        data = cursor.fetchall()
-        conn.close()
+    data = cursor.fetchall()
+    conn.close()
 
-        return data
-
-    except sqlite3.OperationalError:
-        # Si no existe la tabla, la crea automáticamente
-        create_database()
-        return []
+    return data
 
 
 # =========================
-# TOTAL SORTEOS
+# CONTAR SORTEOS
 # =========================
 def get_total_draws():
 
