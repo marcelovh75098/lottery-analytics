@@ -7,7 +7,6 @@ DB_NAME = "lottery.db"
 # CREAR BASE DE DATOS
 # =========================
 def create_database():
-
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
 
@@ -29,7 +28,7 @@ def create_database():
 
 
 # =========================
-# COMPATIBILIDAD APP (CRÍTICO)
+# INIT (OBLIGATORIO EN RENDER)
 # =========================
 def init_db():
     create_database()
@@ -40,38 +39,50 @@ def init_db():
 # =========================
 def insert_draw(draw_date, n1, n2, n3, n4, n5, superbalota):
 
-    conn = sqlite3.connect(DB_NAME)
-    cursor = conn.cursor()
+    try:
+        conn = sqlite3.connect(DB_NAME)
+        cursor = conn.cursor()
 
-    cursor.execute("""
-        INSERT OR IGNORE INTO baloto_draws (
-            draw_date, n1, n2, n3, n4, n5, superbalota
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    """, (draw_date, n1, n2, n3, n4, n5, superbalota))
+        cursor.execute("""
+            INSERT OR IGNORE INTO baloto_draws (
+                draw_date, n1, n2, n3, n4, n5, superbalota
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (draw_date, n1, n2, n3, n4, n5, superbalota))
 
-    conn.commit()
-    conn.close()
+        conn.commit()
+        conn.close()
+
+        return {"status": "ok"}
+
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 
 # =========================
-# OBTENER SORTEOS (OBLIGATORIO PARA APP)
+# OBTENER SORTEOS (SAFE)
 # =========================
 def get_all_draws():
 
-    conn = sqlite3.connect(DB_NAME)
-    cursor = conn.cursor()
+    try:
+        conn = sqlite3.connect(DB_NAME)
+        cursor = conn.cursor()
 
-    cursor.execute("""
-        SELECT n1, n2, n3, n4, n5, superbalota
-        FROM baloto_draws
-        ORDER BY id ASC
-    """)
+        cursor.execute("""
+            SELECT n1, n2, n3, n4, n5, superbalota
+            FROM baloto_draws
+            ORDER BY id ASC
+        """)
 
-    data = cursor.fetchall()
-    conn.close()
+        data = cursor.fetchall()
+        conn.close()
 
-    return data
+        return data
+
+    except sqlite3.OperationalError:
+        # Si no existe la tabla, la crea automáticamente
+        create_database()
+        return []
 
 
 # =========================
