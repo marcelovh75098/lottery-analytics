@@ -1,67 +1,129 @@
 import sqlite3
-from collections import Counter
 
+# =========================
+# BASE DE DATOS
+# =========================
 DB_NAME = "lottery.db"
+# Nombre del archivo de base de datos SQLite
 
 
 # =========================
-# OBTENER HISTORIAL
+# CREAR BASE DE DATOS Y TABLA
 # =========================
-def get_draws():
+def create_database():
+    # Crea la tabla principal si no existe
+
+    conn = sqlite3.connect(DB_NAME)
+    # Conexión a SQLite local (archivo .db)
+
+    cursor = conn.cursor()
+    # Cursor para ejecutar SQL
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS baloto_draws (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            draw_date TEXT UNIQUE,
+            n1 INTEGER,
+            n2 INTEGER,
+            n3 INTEGER,
+            n4 INTEGER,
+            n5 INTEGER,
+            superbalota INTEGER
+        )
+    """)
+    # Tabla de sorteos:
+    # - id: identificador único
+    # - draw_date: fecha del sorteo (única)
+    # - n1-n5: números principales
+    # - superbalota: número extra
+
+    conn.commit()
+    # Guarda cambios en la base de datos
+
+    conn.close()
+    # Cierra conexión
+
+
+# =========================
+# ALIAS INSTITUCIONAL (COMPATIBILIDAD)
+# =========================
+def init_db():
+    # Alias para compatibilidad con app institucional
+
+    create_database()
+    # Llama a la función real de creación
+
+
+# =========================
+# INSERTAR SORTEO
+# =========================
+def insert_draw(draw_date, n1, n2, n3, n4, n5, superbalota):
+    # Inserta un nuevo sorteo en la base de datos
+
+    try:
+        conn = sqlite3.connect(DB_NAME)
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            INSERT OR IGNORE INTO baloto_draws (
+                draw_date, n1, n2, n3, n4, n5, superbalota
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (draw_date, n1, n2, n3, n4, n5, superbalota))
+        # INSERT OR IGNORE evita duplicados por fecha
+
+        conn.commit()
+        conn.close()
+
+        return {"status": "ok"}
+        # Respuesta estándar para Streamlit
+
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+        # Manejo de errores controlado
+
+
+# =========================
+# OBTENER TODOS LOS SORTEOS
+# =========================
+def get_all_draws():
+    # Función principal usada por el motor institucional
+
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
 
     cursor.execute("""
-        SELECT n1,n2,n3,n4,n5,superbalota
+        SELECT n1, n2, n3, n4, n5, superbalota
         FROM baloto_draws
         ORDER BY id ASC
     """)
+    # Devuelve todos los sorteos ordenados cronológicamente
 
     data = cursor.fetchall()
+    # Lista de tuplas con los sorteos
+
     conn.close()
 
     return data
+    # Formato: [(n1,n2,n3,n4,n5,super), ...]
 
 
 # =========================
-# CREAR FEATURES
+# TOTAL DE SORTEOS
 # =========================
-def create_features(window):
+def get_total_draws():
+    # Retorna cuántos sorteos hay en la base
 
-    numbers = []
-    for row in window:
-        numbers.extend(row)
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
 
-    counter = Counter(numbers)
+    cursor.execute("""
+        SELECT COUNT(*) FROM baloto_draws
+    """)
 
-    # vector de features (simplificado pero potente)
-    features = [
-        counter.get(i, 0) for i in range(1, 51)  # números 1–50
-    ]
+    total = cursor.fetchone()[0]
+    # Extrae el número total
 
-    return features
+    conn.close()
 
-
-# =========================
-# DATASET ML
-# =========================
-def build_dataset(window_size=20):
-
-    data = get_draws()
-
-    X = []
-    y = []
-
-    for i in range(window_size, len(data)):
-
-        window = data[i-window_size:i]
-
-        X.append(create_features(window))
-
-        # target: sorteo actual
-        y.append(data[i])
-
-    return X, y
-def init_db():
-    # Alias de compatibilidad para el sistema institucional
-    create_database()
+    return total
