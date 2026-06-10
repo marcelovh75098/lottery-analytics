@@ -3,24 +3,40 @@ from bs4 import BeautifulSoup
 
 URL = "https://www.baloto.com/resultados"
 
+
+# =========================================================
+# OBTENER ÚLTIMO SORTEO (VERSIÓN ESTABLE)
+# =========================================================
 def obtener_ultimo_sorteo():
+
     try:
         response = requests.get(URL, timeout=10)
         response.raise_for_status()
 
         soup = BeautifulSoup(response.text, "html.parser")
 
-        # Buscar la primera fila del sorteo (ajustado a estructura real)
+        # =========================
+        # VALIDACIÓN DE TABLA
+        # =========================
         tabla = soup.find("table")
+
+        if tabla is None:
+            return {"error": "No se encontró tabla en la página"}
+
         fila = tabla.find("tr")
+
+        if fila is None:
+            return {"error": "No se encontró fila de datos"}
 
         celdas = fila.find_all("td")
 
         if len(celdas) < 7:
-            print("❌ No se pudo leer el sorteo correctamente")
-            return None
+            return {"error": "Estructura de datos inválida"}
 
-        fecha = celdas[0].get_text(strip=True)
+        # =========================
+        # EXTRACCIÓN SEGURA
+        # =========================
+        draw_date = celdas[0].get_text(strip=True)
 
         n1 = int(celdas[1].get_text(strip=True))
         n2 = int(celdas[2].get_text(strip=True))
@@ -30,8 +46,11 @@ def obtener_ultimo_sorteo():
 
         superbalota = int(celdas[6].get_text(strip=True))
 
+        # =========================
+        # FORMATO COMPATIBLE DB
+        # =========================
         resultado = {
-            "fecha": fecha,
+            "draw_date": draw_date,  # 🔥 corregido (antes "fecha")
             "n1": n1,
             "n2": n2,
             "n3": n3,
@@ -40,9 +59,7 @@ def obtener_ultimo_sorteo():
             "superbalota": superbalota
         }
 
-        print("✅ Sorteo extraído correctamente:", resultado)
         return resultado
 
     except Exception as e:
-        print("❌ Error en scraper:", e)
-        return None
+        return {"error": f"Error en scraper: {str(e)}"}
