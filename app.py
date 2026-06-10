@@ -6,6 +6,10 @@ from database.db import get_total_draws
 
 if get_total_draws() < 30:
     load_seed()
+    from engine.bootstrap_data import ensure_bootstrap
+from database.db import get_total_draws
+
+bootstrap = ensure_bootstrap()
 
 from engine.features import build_features
 from engine.backtester import backtest
