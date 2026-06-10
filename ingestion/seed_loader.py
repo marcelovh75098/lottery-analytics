@@ -3,6 +3,13 @@ from database.db import insert_draw, init_db
 
 
 def load_seed():
+    """
+    JUSTIFICACIÓN:
+    Carga dataset histórico fijo.
+    - Sustituye scraping frágil.
+    - Garantiza consistencia del backtesting.
+    - Base real de cualquier sistema cuantitativo.
+    """
 
     init_db()
 
