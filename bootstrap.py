@@ -1,47 +1,32 @@
-from database.db import init_db, insert_draw
-from scrapers.baloto_scraper import obtener_ultimo_sorteo
+from database.db import init_db, get_total_draws, insert_draw
 
 
-# =========================
-# INICIALIZAR BASE DE DATOS
-# =========================
-init_db()
-# Asegura que la tabla baloto_draws exista antes de todo
+def bootstrap_if_empty():
+    """
+    Garantiza que el sistema NUNCA arranque vacío.
+    Si no hay datos → crea seed mínimo.
+    """
 
+    init_db()
 
-# =========================
-# OBTENER DATOS DEL SCRAPER
-# =========================
-data = obtener_ultimo_sorteo()
-# Trae el último sorteo desde la web
+    total = get_total_draws()
 
+    if total > 0:
+        return {"status": "ok", "total": total}
 
-# =========================
-# VALIDACIÓN DE DATOS
-# =========================
-if not data:
-    print("❌ No se obtuvo información del scraper")
+    # 🔥 SEED MÍNIMO (OBLIGATORIO PARA QUE NO ROMPA)
+    seed = [
+        ("2024-01-01", 1, 2, 3, 4, 5, 6),
+        ("2024-01-02", 6, 7, 8, 9, 10, 11),
+        ("2024-01-03", 11, 12, 13, 14, 15, 16),
+        ("2024-01-04", 16, 17, 18, 19, 20, 21),
+        ("2024-01-05", 21, 22, 23, 24, 25, 26),
+    ]
 
-elif isinstance(data, dict) and "error" in data:
-    print("❌ Error en scraper:", data["error"])
+    inserted = 0
 
-else:
+    for d in seed:
+        insert_draw(*d)
+        inserted += 1
 
-    try:
-        # =========================
-        # INSERTAR EN BASE DE DATOS
-        # =========================
-        insert_draw(
-            data["draw_date"],
-            data["n1"],
-            data["n2"],
-            data["n3"],
-            data["n4"],
-            data["n5"],
-            data["superbalota"]
-        )
-
-        print("✅ Sorteo insertado correctamente en la base de datos")
-
-    except Exception as e:
-        print("❌ Error insertando en DB:", str(e))
+    return {"status": "bootstrapped", "inserted": inserted}
