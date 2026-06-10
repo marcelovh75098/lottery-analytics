@@ -1,32 +1,28 @@
+def evaluate_prediction(pred, actual):
+    return len(set(pred) & set(actual[:5]))
+
+
 def backtest(strategies, draws):
-    # Función principal de simulación histórica (backtesting)
 
     results = {}
-    # Diccionario donde guardamos resultados por estrategia
 
     for s in strategies:
-        # Recorre cada estrategia
 
-        hits = []
-        # Lista de aciertos por cada simulación
+        scores = []
 
-        for i in range(20, len(draws)):
-            # Empezamos en 20 para tener historial suficiente (evita sesgo)
+        for i in range(len(draws) - 1):
 
-            history = draws[:i]
-            # Solo usamos pasado (evita "future leak")
+            features_draw = draws[:i+1]
+            actual = draws[i+1]
 
-            real = draws[i]
-            # Sorteo real a predecir
+            features = {"history": features_draw}
 
-            pred = s.predict(history)
-            # Predicción de la estrategia
+            pred = s.predict(features)
 
-            hits.append(len(set(pred) & set(real)))
-            # Cuenta cuántos números acertó (intersección)
+            score = evaluate_prediction(pred, actual)
 
-        results[s.name()] = hits
-        # Guarda resultados de la estrategia
+            scores.append(score)
+
+        results[s.name()] = scores
 
     return results
-    # Devuelve todas las métricas para análisis
