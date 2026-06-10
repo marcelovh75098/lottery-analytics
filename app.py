@@ -1,69 +1,58 @@
 import streamlit as st
 
 from database.db import init_db, get_all_draws, get_total_draws
-from engine.bootstrap_data import ensure_bootstrap
+from engine.bootstrap import bootstrap_if_empty
+from engine.backtest import backtest
+from engine.portfolio import build_portfolio
 
 
 # =========================
-# CONFIG
+# INIT SEGURO
 # =========================
-st.set_page_config(page_title="Hedge Fund Engine", layout="wide")
+st.title("🏛️ Lottery Quant Engine")
 
-st.title("🏛️ Hedge Fund Quant Engine")
-
-
-# =========================
-# 🔥 1. INICIALIZAR DB (PRIMERO SIEMPRE)
-# =========================
 init_db()
+boot = bootstrap_if_empty()
+
+
+st.write(boot)
 
 
 # =========================
-# 🔥 2. BOOTSTRAP (DESPUÉS DE INIT)
-# =========================
-bootstrap = ensure_bootstrap()
-
-
-# =========================
-# 🔥 3. AHORA SÍ SE PUEDE CONSULTAR DB
-# =========================
-total = get_total_draws()
-
-
-st.subheader("📡 Estado del sistema")
-st.write(bootstrap)
-st.metric("Total sorteos", total)
-
-
-# =========================
-# 🔥 4. CARGA DE DATOS
+# DATA
 # =========================
 draws = get_all_draws()
 
+st.metric("Total draws", get_total_draws())
+
 
 # =========================
-# 🔥 5. VALIDACIÓN SEGURA
+# SAFE CHECK
 # =========================
-if not draws or len(draws) < 5:
-
-    st.error("Dataset no inicializado correctamente")
+if len(draws) < 3:
+    st.error("Dataset insuficiente")
     st.stop()
 
 
 # =========================
-# 🔥 6. MOTOR CUANTITATIVO
+# STRATEGY SIMPLE (inline para evitar imports rotos)
 # =========================
-if st.button("🚀 Ejecutar Backtest"):
+class FrequencyStrategy:
 
-    from strategies.frequency import FrequencyStrategy
-    from strategies.hot import HotStrategy
-    from engine.backtester import backtest
-    from engine.portfolio import build_portfolio
+    def name(self):
+        return "frequency"
 
-    strategies = [
-        FrequencyStrategy(),
-        HotStrategy()
-    ]
+    def predict(self, features):
+        freq = features["frequency"]
+        return sorted(freq, key=freq.get, reverse=True)[:5]
+
+
+# =========================
+# RUN
+# =========================
+if st.button("Run Engine"):
+
+    strategies = [FrequencyStrategy()]
 
     results = backtest(strategies, draws)
 
