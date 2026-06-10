@@ -1,61 +1,68 @@
 import streamlit as st
 
-from database.db import init_db, get_all_draws
-from ingestion.seed_loader import load_seed
-from database.db import get_total_draws
-
-if get_total_draws() < 30:
-    load_seed()
-    from engine.bootstrap_data import ensure_bootstrap
-from database.db import get_total_draws
-
-bootstrap = ensure_bootstrap()
-
-from engine.features import build_features
-from engine.backtester import backtest
-from engine.portfolio import build_portfolio
-from engine.ensemble import ensemble_predict
+from database.db import init_db, get_all_draws, get_total_draws
+from engine.bootstrap_data import ensure_bootstrap
 
 from strategies.frequency import FrequencyStrategy
-from strategies.random_baseline import RandomStrategy
+from strategies.hot import HotStrategy
+
+from engine.backtester import backtest
+from engine.portfolio import build_portfolio
 
 
-init_db()
+# =========================
+# CONFIGURACIÓN
+# =========================
+st.set_page_config(page_title="Hedge Fund Quant Engine", layout="wide")
 
 st.title("🏛️ Hedge Fund Quant Engine (Lottery Research)")
 
+
+# =========================
+# INICIALIZACIÓN SISTEMA
+# =========================
+init_db()
+
+bootstrap = ensure_bootstrap()
+
+
+st.subheader("📡 Estado del sistema")
+st.write(bootstrap)
+st.metric("Total sorteos", get_total_draws())
+
+
+# =========================
+# CARGA DE DATOS
+# =========================
 draws = get_all_draws()
 
-if len(draws) < 30:
-    st.warning("Insuficient data for institutional backtest")
+
+# =========================
+# VALIDACIÓN INSTITUCIONAL
+# =========================
+if not draws or len(draws) < 5:
+
+    st.error("Dataset no inicializado correctamente")
+    st.write(bootstrap)
     st.stop()
 
 
-strategies = [
-    FrequencyStrategy(),
-    RandomStrategy()
-]
+# =========================
+# MOTOR CUANTITATIVO
+# =========================
+if st.button("🚀 Ejecutar Backtest Institucional"):
 
+    strategies = [
+        FrequencyStrategy(),
+        HotStrategy()
+    ]
 
-# BACKTEST
-results = backtest(strategies, draws)
+    results = backtest(strategies, draws)
 
-# PORTFOLIO
-portfolio, metrics = build_portfolio(results)
+    portfolio, metrics = build_portfolio(results)
 
-# FEATURES
-features = build_features(draws)
+    st.subheader("🏆 Portfolio Institucional")
+    st.write(portfolio)
 
-# ENSEMBLE
-selected = [s for s in strategies if s.name() in portfolio]
-prediction = ensemble_predict(selected, features)
-
-
-st.subheader("📊 Portfolio institucional")
-st.write(portfolio)
-
-st.subheader("📈 Métricas")
-st.write(metrics)
-
-st.subheader("🎯 Signal final")
-st.success(prediction)
+    st.subheader("📊 Métricas")
+    st.write(metrics)
