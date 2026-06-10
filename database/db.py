@@ -62,3 +62,6 @@ def build_dataset(window_size=20):
         y.append(data[i])
 
     return X, y
+def init_db():
+    # Alias de compatibilidad para el sistema institucional
+    create_database()
