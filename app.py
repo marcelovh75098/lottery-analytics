@@ -1,50 +1,43 @@
 import streamlit as st
 
-# =========================
-# DB INIT (OBLIGATORIO PRIMERO)
-# =========================
 from database.db import init_db, get_all_draws, get_total_draws
+from engine.autopilot import ensure_data
 
-init_db()  # 🔥 CREA LA TABLA ANTES DE TODO
-
-
-# =========================
-# ESTRATEGIAS
-# =========================
 from strategies.frequency import FrequencyStrategy
 from strategies.hot import HotStrategy
 
-# =========================
-# MOTOR INSTITUCIONAL
-# =========================
 from engine.backtester import backtest
 from engine.portfolio import build_portfolio
 from engine.ensemble import ensemble_predict
 
 
 # =========================
-# CONFIG STREAMLIT
+# INIT SISTEMA
 # =========================
-st.set_page_config(
-    page_title="Lottery Analytics",
-    page_icon="🏛️",
-    layout="wide"
-)
+init_db()
 
-st.title("🏛️ Lottery Analytics - Institutional Engine")
+
+st.set_page_config(page_title="Lottery AI", layout="wide")
+st.title("🏛️ Lottery Analytics - Autonomous Engine")
 
 
 # =========================
-# BOTÓN PRINCIPAL
+# AUTOPILOTO (CLAVE)
+# =========================
+status = ensure_data(min_rows=30)
+
+if status["status"] == "error":
+    st.error("No se pudo inicializar el dataset")
+    st.write(status)
+    st.stop()
+
+
+# =========================
+# MOTOR INSTITUCIONAL
 # =========================
 if st.button("🚀 Ejecutar Motor Institucional"):
 
     draws = get_all_draws()
-
-    # 🔥 protección contra DB vacía
-    if not draws or len(draws) < 20:
-        st.warning("No hay suficientes datos para ejecutar el sistema (mínimo 20 sorteos)")
-        st.stop()
 
     strategies = [
         FrequencyStrategy(),
@@ -55,9 +48,7 @@ if st.button("🚀 Ejecutar Motor Institucional"):
 
     portfolio, scores = build_portfolio(results)
 
-    selected = [
-        s for s in strategies if s.name() in portfolio
-    ]
+    selected = [s for s in strategies if s.name() in portfolio]
 
     prediction = ensemble_predict(selected, draws, scores)
 
@@ -72,14 +63,10 @@ if st.button("🚀 Ejecutar Motor Institucional"):
 
 
 # =========================
-# HISTORIAL
+# DATA STATUS
 # =========================
 st.markdown("---")
-st.subheader("📊 Historial de sorteos")
+st.subheader("📊 Estado del sistema")
 
-draws = get_all_draws()
-
-if draws:
-    st.write(draws)
-else:
-    st.info("Base de datos aún vacía. Ejecuta el scraper.")
+st.write(status)
+st.metric("Total sorteos", get_total_draws())
