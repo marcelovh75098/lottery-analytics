@@ -1,25 +1,19 @@
 import sqlite3
-import os
 
 DB_NAME = "lottery.db"
 
 
+# =========================================================
+# CONEXIÓN BASE
+# =========================================================
 def get_connection():
-    """
-    JUSTIFICACIÓN:
-    Centraliza conexión.
-    Evita corrupción por múltiples accesos simultáneos.
-    """
     return sqlite3.connect(DB_NAME)
 
 
+# =========================================================
+# INICIALIZAR BASE DE DATOS
+# =========================================================
 def init_db():
-    """
-    JUSTIFICACIÓN:
-    Garantiza existencia de tabla SIEMPRE.
-    Se ejecuta de forma idempotente (segura múltiples veces).
-    """
-
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -40,35 +34,35 @@ def init_db():
     conn.close()
 
 
-def safe_init():
+# =========================================================
+# INSERTAR SORTEO (FUNCIÓN QUE TE FALTABA O NO ESTABA CARGADA)
+# =========================================================
+def insert_draw(draw_date, n1, n2, n3, n4, n5, superbalota):
     """
     JUSTIFICACIÓN:
-    Capa de protección para Render.
-    Asegura DB antes de cualquier query.
+    Inserta datos del sorteo de forma segura.
+    - IGNORA duplicados por draw_date
+    - Evita corrupción de dataset
     """
-
-    init_db()
-
-
-def get_total_draws():
-
-    safe_init()  # 🔥 CLAVE: nunca consultar sin tabla
 
     conn = get_connection()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT COUNT(*) FROM baloto_draws")
+    cursor.execute("""
+        INSERT OR IGNORE INTO baloto_draws (
+            draw_date, n1, n2, n3, n4, n5, superbalota
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    """, (draw_date, n1, n2, n3, n4, n5, superbalota))
 
-    total = cursor.fetchone()[0]
-
+    conn.commit()
     conn.close()
 
-    return total
 
-
+# =========================================================
+# OBTENER TODOS LOS SORTEOS
+# =========================================================
 def get_all_draws():
-
-    safe_init()  # 🔥 PROTECCIÓN CRÍTICA
 
     conn = get_connection()
     cursor = conn.cursor()
@@ -80,7 +74,23 @@ def get_all_draws():
     """)
 
     data = cursor.fetchall()
-
     conn.close()
 
     return data
+
+
+# =========================================================
+# CONTAR SORTEOS
+# =========================================================
+def get_total_draws():
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT COUNT(*) FROM baloto_draws")
+
+    total = cursor.fetchone()[0]
+
+    conn.close()
+
+    return total
