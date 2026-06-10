@@ -1,10 +1,11 @@
 from collections import Counter
-import numpy as np
 
 
 def build_features(draws):
     """
-    Convierte historial en señales cuantitativas.
+    JUSTIFICACIÓN:
+    Convierte historial en features cuantitativas.
+    - Este es el "alpha engine" del sistema.
     """
 
     flat = []
@@ -16,8 +17,10 @@ def build_features(draws):
 
     total = sum(freq.values())
 
-    freq_score = {k: v / total for k, v in freq.items()}
+    frequency = {
+        k: v / total for k, v in freq.items()
+    }
 
     return {
-        "frequency": freq_score
+        "frequency": frequency
     }
