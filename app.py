@@ -1,108 +1,85 @@
 import streamlit as st
 
 # =========================
-# IMPORTACIÓN DE ESTRATEGIAS
+# DB INIT (OBLIGATORIO PRIMERO)
 # =========================
-from strategies.frequency import FrequencyStrategy  # Estrategia por frecuencia histórica
-from strategies.hot import HotStrategy  # Estrategia por números recientes
+from database.db import init_db, get_all_draws, get_total_draws
+
+init_db()  # 🔥 CREA LA TABLA ANTES DE TODO
+
+
+# =========================
+# ESTRATEGIAS
+# =========================
+from strategies.frequency import FrequencyStrategy
+from strategies.hot import HotStrategy
 
 # =========================
 # MOTOR INSTITUCIONAL
 # =========================
-from engine.backtester import backtest  # Simula desempeño histórico de estrategias
-from engine.portfolio import build_portfolio  # Selecciona mejores estrategias
-from engine.ensemble import ensemble_predict  # Combina estrategias en una sola predicción
-
-# =========================
-# BASE DE DATOS (YA EXISTE EN TU PROYECTO)
-# =========================
-from database.db import get_all_draws  # Trae todos los sorteos almacenados
+from engine.backtester import backtest
+from engine.portfolio import build_portfolio
+from engine.ensemble import ensemble_predict
 
 
 # =========================
-# CONFIGURACIÓN STREAMLIT
+# CONFIG STREAMLIT
 # =========================
 st.set_page_config(
-    page_title="Lottery Analytics - Institutional Engine",
+    page_title="Lottery Analytics",
     page_icon="🏛️",
     layout="wide"
 )
 
-st.title("🏛️ Lottery Analytics - Institutional Quant Engine")
-st.markdown("Sistema de evaluación de estrategias basado en backtesting y scoring financiero")
+st.title("🏛️ Lottery Analytics - Institutional Engine")
 
 
 # =========================
-# BOTÓN PRINCIPAL DEL SISTEMA
+# BOTÓN PRINCIPAL
 # =========================
 if st.button("🚀 Ejecutar Motor Institucional"):
 
-    # =========================
-    # 1. CARGAR DATOS
-    # =========================
     draws = get_all_draws()
-    # Trae todos los sorteos desde SQLite para análisis histórico
 
-    if not draws or len(draws) < 30:
-        st.error("No hay suficientes datos para ejecutar el motor (mínimo 30 sorteos)")
+    # 🔥 protección contra DB vacía
+    if not draws or len(draws) < 20:
+        st.warning("No hay suficientes datos para ejecutar el sistema (mínimo 20 sorteos)")
         st.stop()
 
-    # =========================
-    # 2. DEFINIR ESTRATEGIAS
-    # =========================
     strategies = [
-        FrequencyStrategy(),  # estrategia basada en frecuencia histórica
-        HotStrategy()         # estrategia basada en números recientes
+        FrequencyStrategy(),
+        HotStrategy()
     ]
 
-    # =========================
-    # 3. BACKTESTING
-    # =========================
     results = backtest(strategies, draws)
-    # Evalúa cómo habría funcionado cada estrategia en el pasado
 
-    # =========================
-    # 4. CONSTRUIR PORTAFOLIO INSTITUCIONAL
-    # =========================
     portfolio, scores = build_portfolio(results)
-    # Selecciona las mejores estrategias según scoring tipo financiero
 
-    # =========================
-    # 5. FILTRAR ESTRATEGIAS GANADORAS
-    # =========================
-    selected_strategies = [
+    selected = [
         s for s in strategies if s.name() in portfolio
     ]
-    # Solo usamos las estrategias más fuertes
 
-    # =========================
-    # 6. GENERAR PREDICCIÓN FINAL (ENSEMBLE)
-    # =========================
-    prediction = ensemble_predict(selected_strategies, draws, scores)
-    # Combina estrategias con pesos para generar resultado final
+    prediction = ensemble_predict(selected, draws, scores)
 
-    # =========================
-    # 7. MOSTRAR RESULTADOS
-    # =========================
-    st.subheader("🏆 Portfolio Institucional (mejores estrategias)")
+    st.subheader("🏆 Portfolio")
     st.write(portfolio)
 
-    st.subheader("📊 Scores de estrategias (tipo financiero)")
+    st.subheader("📊 Scores")
     st.write(scores)
 
-    st.subheader("🎯 Predicción del sistema (ensemble)")
+    st.subheader("🎯 Predicción")
     st.success(prediction)
 
 
 # =========================
-# VISUALIZACIÓN DE DATOS
+# HISTORIAL
 # =========================
 st.markdown("---")
 st.subheader("📊 Historial de sorteos")
 
-try:
-    draws = get_all_draws()
-    st.write(draws)
+draws = get_all_draws()
 
-except Exception as e:
-    st.error(f"Error cargando datos: {str(e)}")
+if draws:
+    st.write(draws)
+else:
+    st.info("Base de datos aún vacía. Ejecuta el scraper.")
