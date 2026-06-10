@@ -1,32 +1,26 @@
 from engine.metrics import compute_metrics
 
 
-# =========================================================
-# CONSTRUCCIÓN DE PORTAFOLIO INSTITUCIONAL
-# =========================================================
 def build_portfolio(results):
+    """
+    JUSTIFICACIÓN:
+    Construcción de portafolio cuantitativo.
+    - Evalúa performance de cada estrategia.
+    - Ordena por score_ratio (tipo Sharpe simplificado).
+    - Selecciona estrategias más eficientes.
+    """
 
     metrics = {}
 
-    # =========================
-    # CALCULAR MÉTRICAS POR ESTRATEGIA
-    # =========================
     for name, scores in results.items():
-
         metrics[name] = compute_metrics(scores)
 
-    # =========================
-    # RANKING TIPO HEDGE FUND
-    # =========================
     ranked = sorted(
         metrics.items(),
         key=lambda x: x[1]["score_ratio"],
         reverse=True
     )
 
-    # =========================
-    # SELECCIÓN DE PORTAFOLIO
-    # =========================
     portfolio = [r[0] for r in ranked]
 
     return portfolio, metrics
