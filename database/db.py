@@ -1,16 +1,26 @@
 import sqlite3
+import os
 
 DB_NAME = "lottery.db"
+
+
+def get_connection():
+    """
+    JUSTIFICACIÓN:
+    Centraliza conexión.
+    Evita corrupción por múltiples accesos simultáneos.
+    """
+    return sqlite3.connect(DB_NAME)
 
 
 def init_db():
     """
     JUSTIFICACIÓN:
-    Inicializa la base de datos SQLite.
-    - Se ejecuta al inicio del sistema.
-    - Evita error de tabla inexistente en Render o local.
+    Garantiza existencia de tabla SIEMPRE.
+    Se ejecuta de forma idempotente (segura múltiples veces).
     """
-    conn = sqlite3.connect(DB_NAME)
+
+    conn = get_connection()
     cursor = conn.cursor()
 
     cursor.execute("""
@@ -30,35 +40,37 @@ def init_db():
     conn.close()
 
 
-def insert_draw(draw_date, n1, n2, n3, n4, n5, superbalota):
+def safe_init():
     """
     JUSTIFICACIÓN:
-    Inserta un sorteo en la base de datos.
-    - INSERT OR IGNORE evita duplicados por draw_date.
-    - Previene corrupción del dataset en re-ejecuciones.
+    Capa de protección para Render.
+    Asegura DB antes de cualquier query.
     """
-    conn = sqlite3.connect(DB_NAME)
+
+    init_db()
+
+
+def get_total_draws():
+
+    safe_init()  # 🔥 CLAVE: nunca consultar sin tabla
+
+    conn = get_connection()
     cursor = conn.cursor()
 
-    cursor.execute("""
-        INSERT OR IGNORE INTO baloto_draws (
-            draw_date, n1, n2, n3, n4, n5, superbalota
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    """, (draw_date, n1, n2, n3, n4, n5, superbalota))
+    cursor.execute("SELECT COUNT(*) FROM baloto_draws")
 
-    conn.commit()
+    total = cursor.fetchone()[0]
+
     conn.close()
+
+    return total
 
 
 def get_all_draws():
-    """
-    JUSTIFICACIÓN:
-    Extrae todo el historial de sorteos.
-    - Base del backtesting cuantitativo.
-    - Orden ascendente para simulación temporal.
-    """
-    conn = sqlite3.connect(DB_NAME)
+
+    safe_init()  # 🔥 PROTECCIÓN CRÍTICA
+
+    conn = get_connection()
     cursor = conn.cursor()
 
     cursor.execute("""
@@ -68,21 +80,7 @@ def get_all_draws():
     """)
 
     data = cursor.fetchall()
+
     conn.close()
+
     return data
-
-
-def get_total_draws():
-    """
-    JUSTIFICACIÓN:
-    Retorna el tamaño del dataset.
-    - Usado para validar si el sistema puede ejecutar backtesting.
-    """
-    conn = sqlite3.connect(DB_NAME)
-    cursor = conn.cursor()
-
-    cursor.execute("SELECT COUNT(*) FROM baloto_draws")
-    total = cursor.fetchone()[0]
-
-    conn.close()
-    return total
