@@ -1,15 +1,32 @@
-import numpy as np
+from engine.metrics import compute_metrics
 
 
-def compute_metrics(scores):
+# =========================================================
+# CONSTRUCCIÓN DE PORTAFOLIO INSTITUCIONAL
+# =========================================================
+def build_portfolio(results):
 
-    avg = np.mean(scores)
-    std = np.std(scores) + 1e-9
+    metrics = {}
 
-    sharpe_like = avg / std
+    # =========================
+    # CALCULAR MÉTRICAS POR ESTRATEGIA
+    # =========================
+    for name, scores in results.items():
 
-    return {
-        "mean_hits": avg,
-        "volatility": std,
-        "score_ratio": sharpe_like
-    }
+        metrics[name] = compute_metrics(scores)
+
+    # =========================
+    # RANKING TIPO HEDGE FUND
+    # =========================
+    ranked = sorted(
+        metrics.items(),
+        key=lambda x: x[1]["score_ratio"],
+        reverse=True
+    )
+
+    # =========================
+    # SELECCIÓN DE PORTAFOLIO
+    # =========================
+    portfolio = [r[0] for r in ranked]
+
+    return portfolio, metrics
