@@ -3,10 +3,13 @@ import sqlite3
 DB_NAME = "lottery.db"
 
 
-# =========================
-# CREAR BASE DE DATOS
-# =========================
-def create_database():
+def init_db():
+    """
+    JUSTIFICACIÓN:
+    Inicializa la base de datos SQLite.
+    - Se ejecuta al inicio del sistema.
+    - Evita error de tabla inexistente en Render o local.
+    """
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
 
@@ -27,18 +30,13 @@ def create_database():
     conn.close()
 
 
-# =========================
-# INIT DB
-# =========================
-def init_db():
-    create_database()
-
-
-# =========================
-# INSERTAR SORTEO
-# =========================
 def insert_draw(draw_date, n1, n2, n3, n4, n5, superbalota):
-
+    """
+    JUSTIFICACIÓN:
+    Inserta un sorteo en la base de datos.
+    - INSERT OR IGNORE evita duplicados por draw_date.
+    - Previene corrupción del dataset en re-ejecuciones.
+    """
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
 
@@ -53,11 +51,13 @@ def insert_draw(draw_date, n1, n2, n3, n4, n5, superbalota):
     conn.close()
 
 
-# =========================
-# OBTENER DATOS
-# =========================
 def get_all_draws():
-
+    """
+    JUSTIFICACIÓN:
+    Extrae todo el historial de sorteos.
+    - Base del backtesting cuantitativo.
+    - Orden ascendente para simulación temporal.
+    """
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
 
@@ -69,22 +69,20 @@ def get_all_draws():
 
     data = cursor.fetchall()
     conn.close()
-
     return data
 
 
-# =========================
-# CONTAR SORTEOS
-# =========================
 def get_total_draws():
-
+    """
+    JUSTIFICACIÓN:
+    Retorna el tamaño del dataset.
+    - Usado para validar si el sistema puede ejecutar backtesting.
+    """
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
 
     cursor.execute("SELECT COUNT(*) FROM baloto_draws")
-
     total = cursor.fetchone()[0]
 
     conn.close()
-
     return total
