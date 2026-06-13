@@ -2,7 +2,6 @@ import streamlit as st
 
 from database.db import init_db, get_all_draws, get_total_draws
 from engine.backtester import backtest
-from engine.backtest import backtest
 from engine.portfolio import build_portfolio
 
 
