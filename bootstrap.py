@@ -1,13 +1,16 @@
-from database.db import init_db, get_total_draws
+from database.db import get_total_draws
 
 
 def bootstrap_if_empty():
+    """
+    Ya NO cargamos datos ficticios.
 
-    init_db()
+    El histórico real será cargado desde el CSV.
+    """
 
     total = get_total_draws()
 
     return {
-        "status": "ok",
+        "status": "ready",
         "total_draws": total
     }
