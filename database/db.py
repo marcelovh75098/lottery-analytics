@@ -8,23 +8,24 @@ def get_connection():
 
 
 def init_db():
-    """
-    Garantiza que la tabla exista siempre.
-    Se ejecuta en cada arranque sin riesgo.
-    """
+
     conn = get_connection()
     cur = conn.cursor()
 
     cur.execute("""
         CREATE TABLE IF NOT EXISTS baloto_draws (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            draw_date TEXT UNIQUE,
+            tipo_sorteo TEXT,
+            sorteo_id INTEGER,
+            draw_date TEXT,
             n1 INTEGER,
             n2 INTEGER,
             n3 INTEGER,
             n4 INTEGER,
             n5 INTEGER,
-            superbalota INTEGER
+            superbalota INTEGER,
+
+            UNIQUE(tipo_sorteo, sorteo_id)
         )
     """)
 
@@ -32,45 +33,109 @@ def init_db():
     conn.close()
 
 
-def insert_draw(draw_date, n1, n2, n3, n4, n5, superbalota):
-    """
-    Inserción segura (evita duplicados).
-    """
+def insert_draw(
+    tipo_sorteo,
+    sorteo_id,
+    draw_date,
+    n1,
+    n2,
+    n3,
+    n4,
+    n5,
+    superbalota
+):
+
     conn = get_connection()
     cur = conn.cursor()
 
     cur.execute("""
         INSERT OR IGNORE INTO baloto_draws (
-            draw_date, n1, n2, n3, n4, n5, superbalota
+            tipo_sorteo,
+            sorteo_id,
+            draw_date,
+            n1,
+            n2,
+            n3,
+            n4,
+            n5,
+            superbalota
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    """, (draw_date, n1, n2, n3, n4, n5, superbalota))
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        tipo_sorteo,
+        sorteo_id,
+        draw_date,
+        n1,
+        n2,
+        n3,
+        n4,
+        n5,
+        superbalota
+    ))
 
     conn.commit()
     conn.close()
 
 
-def get_all_draws():
+def draw_exists(tipo_sorteo, sorteo_id):
+
     conn = get_connection()
     cur = conn.cursor()
 
     cur.execute("""
-        SELECT n1, n2, n3, n4, n5, superbalota
+        SELECT 1
         FROM baloto_draws
-        ORDER BY id ASC
-    """)
+        WHERE tipo_sorteo = ?
+        AND sorteo_id = ?
+        LIMIT 1
+    """, (tipo_sorteo, sorteo_id))
 
-    data = cur.fetchall()
+    result = cur.fetchone()
+
     conn.close()
-    return data
+
+    return result is not None
 
 
 def get_total_draws():
+
     conn = get_connection()
     cur = conn.cursor()
 
-    cur.execute("SELECT COUNT(*) FROM baloto_draws")
+    cur.execute("""
+        SELECT COUNT(*)
+        FROM baloto_draws
+    """)
+
     total = cur.fetchone()[0]
 
     conn.close()
+
     return total
+
+
+def get_all_draws():
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT
+            tipo_sorteo,
+            sorteo_id,
+            draw_date,
+            n1,
+            n2,
+            n3,
+            n4,
+            n5,
+            superbalota
+        FROM baloto_draws
+        ORDER BY sorteo_id ASC
+    """)
+
+    data = cur.fetchall()
+
+    conn.close()
+
+    return data
