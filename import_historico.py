@@ -6,28 +6,7 @@ from database.db import (
     get_total_draws
 )
 
-# ==================================================
-# IMPORTADOR DEL HISTÓRICO REAL BALOTO / REVANCHA
-# ==================================================
-# Este script se ejecuta UNA SOLA VEZ para cargar
-# todos los sorteos históricos dentro de SQLite.
-#
-# El CSV debe contener:
-#
-# Tipo_Sorteo
-# Sorteo_Id
-# Fecha
-# B1
-# B2
-# B3
-# B4
-# B5
-# Super_Balota
-#
-# INSERT OR IGNORE evita duplicados.
-# ==================================================
-
-CSV_FILE = "data/baloto_seed.csv"
+CSV_FILE = "historico_baloto_revancha_2017_2026.csv"
 
 
 def importar_historico():
@@ -36,7 +15,7 @@ def importar_historico():
 
     df = pd.read_csv(CSV_FILE)
 
-    print(f"Sorteos encontrados en CSV: {len(df)}")
+    print(f"Sorteos encontrados: {len(df)}")
 
     for _, row in df.iterrows():
 
@@ -52,10 +31,10 @@ def importar_historico():
             int(row["Super_Balota"])
         )
 
-    print("===================================")
-    print("Carga completada")
-    print("===================================")
-    print(f"Total en base de datos: {get_total_draws()}")
+    print("================================")
+    print("IMPORTACIÓN COMPLETADA")
+    print("================================")
+    print(f"Total en DB: {get_total_draws()}")
 
 
 if __name__ == "__main__":
