@@ -1,61 +1,108 @@
 import streamlit as st
 
-from database.db import init_db, get_all_draws, get_total_draws
+from database.db import (
+init_db,
+get_all_draws,
+get_total_draws
+)
+
+from engine.bootstrap import bootstrap_if_empty
 from engine.backtester import backtest
 from engine.portfolio import build_portfolio
 
+# =====================================
 
-# =========================
-# INIT SEGURO
-# =========================
+# INICIALIZACIÓN
+
+# =====================================
+
+st.set_page_config(
+page_title="Lottery Quant Engine",
+page_icon="🏛️",
+layout="wide"
+)
+
 st.title("🏛️ Lottery Quant Engine")
 
 init_db()
-boot = bootstrap_if_empty()
 
+boot = bootstrap_if_empty()
 
 st.write(boot)
 
+# =====================================
 
-# =========================
-# DATA
-# =========================
+# CARGAR DATOS
+
+# =====================================
+
 draws = get_all_draws()
 
-st.metric("Total draws", get_total_draws())
+st.metric(
+"Total Draws",
+get_total_draws()
+)
 
+# =====================================
 
-# =========================
-# SAFE CHECK
-# =========================
+# VALIDACIÓN
+
+# =====================================
+
 if len(draws) < 3:
-    st.error("Dataset insuficiente")
-    st.stop()
+st.error("Dataset insuficiente")
+st.stop()
 
+# =====================================
 
-# =========================
-# STRATEGY SIMPLE (inline para evitar imports rotos)
-# =========================
+# ESTRATEGIA SIMPLE
+
+# =====================================
+
 class FrequencyStrategy:
 
-    def name(self):
-        return "frequency"
+```
+def name(self):
+    return "frequency"
 
-    def predict(self, features):
-        freq = features["frequency"]
-        return sorted(freq, key=freq.get, reverse=True)[:5]
+def predict(self, features):
 
+    freq = features["frequency"]
 
-# =========================
-# RUN
-# =========================
+    return sorted(
+        freq,
+        key=freq.get,
+        reverse=True
+    )[:5]
+```
+
+# =====================================
+
+# EJECUCIÓN
+
+# =====================================
+
 if st.button("Run Engine"):
 
-    strategies = [FrequencyStrategy()]
+```
+strategies = [
+    FrequencyStrategy()
+]
 
-    results = backtest(strategies, draws)
+results = backtest(
+    strategies,
+    draws
+)
 
-    portfolio, metrics = build_portfolio(results)
+portfolio, metrics = build_portfolio(
+    results
+)
 
-    st.write(portfolio)
-    st.write(metrics)
+st.subheader("Portfolio")
+
+st.write(portfolio)
+
+st.subheader("Metrics")
+
+st.write(metrics)
+```
