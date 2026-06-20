@@ -1,4 +1,5 @@
 import sqlite3
+import os
 
 DB_NAME = "lottery.db"
 
@@ -8,29 +9,20 @@ def get_connection():
 
 
 def init_db():
-    """
-    Crea la tabla principal de sorteos.
-    Compatible con el histórico real Baloto/Revancha.
-    """
-
     conn = get_connection()
     cur = conn.cursor()
 
     cur.execute("""
         CREATE TABLE IF NOT EXISTS baloto_draws (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-
             tipo_sorteo TEXT,
             sorteo_id INTEGER,
-
             draw_date TEXT UNIQUE,
-
             n1 INTEGER,
             n2 INTEGER,
             n3 INTEGER,
             n4 INTEGER,
             n5 INTEGER,
-
             superbalota INTEGER
         )
     """)
@@ -39,48 +31,21 @@ def init_db():
     conn.close()
 
 
-def insert_draw(
-    tipo_sorteo,
-    sorteo_id,
-    draw_date,
-    n1,
-    n2,
-    n3,
-    n4,
-    n5,
-    superbalota
-):
-    """
-    Inserta un sorteo.
-    IGNORE evita errores si el sorteo ya existe.
-    """
+def insert_draw(tipo_sorteo, sorteo_id, draw_date,
+                n1, n2, n3, n4, n5, superbalota):
 
     conn = get_connection()
     cur = conn.cursor()
 
     cur.execute("""
         INSERT OR IGNORE INTO baloto_draws (
-            tipo_sorteo,
-            sorteo_id,
-            draw_date,
-            n1,
-            n2,
-            n3,
-            n4,
-            n5,
-            superbalota
+            tipo_sorteo, sorteo_id, draw_date,
+            n1, n2, n3, n4, n5, superbalota
         )
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
-        tipo_sorteo,
-        sorteo_id,
-        draw_date,
-        n1,
-        n2,
-        n3,
-        n4,
-        n5,
-        superbalota
+        tipo_sorteo, sorteo_id, draw_date,
+        n1, n2, n3, n4, n5, superbalota
     ))
 
     conn.commit()
@@ -92,11 +57,9 @@ def get_total_draws():
     cur = conn.cursor()
 
     cur.execute("SELECT COUNT(*) FROM baloto_draws")
-
     total = cur.fetchone()[0]
 
     conn.close()
-
     return total
 
 
@@ -105,20 +68,11 @@ def get_all_draws():
     cur = conn.cursor()
 
     cur.execute("""
-        SELECT
-            draw_date,
-            n1,
-            n2,
-            n3,
-            n4,
-            n5,
-            superbalota
+        SELECT draw_date, n1, n2, n3, n4, n5, superbalota
         FROM baloto_draws
         ORDER BY draw_date
     """)
 
     rows = cur.fetchall()
-
     conn.close()
-
     return rows
