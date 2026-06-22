@@ -4,7 +4,12 @@ import os
 from database.db import get_total_draws, insert_draw, init_db
 
 
-CSV_PATH = "historico_baloto_revancha_2017_2026.csv"
+CSV_PATH = os.path.join(
+    BASE_DIR,
+    "..",
+    "data",
+    "historico_baloto_revancha_2017_2026.csv"
+)
 
 
 def bootstrap_if_empty():
