@@ -13,7 +13,9 @@ def load_csv_dataset(path="data/historico_baloto_revancha_2017_2026.csv"):
     for _, row in df.iterrows():
 
         insert_draw(
-            row["draw_date"],
+            row["tipo_sorteo"],
+            int(row["sorteo_id"]),
+            row["fecha"],
             int(row["n1"]),
             int(row["n2"]),
             int(row["n3"]),
