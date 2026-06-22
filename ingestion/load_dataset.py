@@ -2,7 +2,7 @@ import pandas as pd
 from database.db import insert_draw, init_db
 
 
-def load_csv_dataset(path="data/baloto_history.csv"):
+def load_csv_dataset(path="data/historico_baloto_revancha_2017_2026.csv"):
 
     init_db()
 
