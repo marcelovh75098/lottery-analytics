@@ -1,5 +1,4 @@
 import sqlite3
-import os
 
 DB_NAME = "lottery.db"
 
@@ -17,13 +16,14 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             tipo_sorteo TEXT,
             sorteo_id INTEGER,
-            draw_date TEXT UNIQUE,
+            draw_date TEXT,
             n1 INTEGER,
             n2 INTEGER,
             n3 INTEGER,
             n4 INTEGER,
             n5 INTEGER,
-            superbalota INTEGER
+            superbalota INTEGER,
+            UNIQUE(tipo_sorteo, sorteo_id)
         )
     """)
 
@@ -31,21 +31,44 @@ def init_db():
     conn.close()
 
 
-def insert_draw(tipo_sorteo, sorteo_id, draw_date,
-                n1, n2, n3, n4, n5, superbalota):
+def insert_draw(
+    tipo_sorteo,
+    sorteo_id,
+    draw_date,
+    n1,
+    n2,
+    n3,
+    n4,
+    n5,
+    superbalota
+):
 
     conn = get_connection()
     cur = conn.cursor()
 
     cur.execute("""
         INSERT OR IGNORE INTO baloto_draws (
-            tipo_sorteo, sorteo_id, draw_date,
-            n1, n2, n3, n4, n5, superbalota
+            tipo_sorteo,
+            sorteo_id,
+            draw_date,
+            n1,
+            n2,
+            n3,
+            n4,
+            n5,
+            superbalota
         )
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
-        tipo_sorteo, sorteo_id, draw_date,
-        n1, n2, n3, n4, n5, superbalota
+        tipo_sorteo,
+        sorteo_id,
+        draw_date,
+        n1,
+        n2,
+        n3,
+        n4,
+        n5,
+        superbalota
     ))
 
     conn.commit()
@@ -53,26 +76,41 @@ def insert_draw(tipo_sorteo, sorteo_id, draw_date,
 
 
 def get_total_draws():
+
     conn = get_connection()
     cur = conn.cursor()
 
     cur.execute("SELECT COUNT(*) FROM baloto_draws")
+
     total = cur.fetchone()[0]
 
     conn.close()
+
     return total
 
 
 def get_all_draws():
+
     conn = get_connection()
     cur = conn.cursor()
 
     cur.execute("""
-        SELECT draw_date, n1, n2, n3, n4, n5, superbalota
+        SELECT
+            tipo_sorteo,
+            sorteo_id,
+            draw_date,
+            n1,
+            n2,
+            n3,
+            n4,
+            n5,
+            superbalota
         FROM baloto_draws
         ORDER BY draw_date
     """)
 
     rows = cur.fetchall()
+
     conn.close()
+
     return rows
