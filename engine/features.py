@@ -7,7 +7,7 @@ def build_features(draws):
     FEATURE ENGINEERING
     ==================================================
 
-    Estructura real de cada sorteo:
+    Estructura del sorteo:
 
     (
         tipo_sorteo,
@@ -21,30 +21,16 @@ def build_features(draws):
         superbalota
     )
 
-    Índices válidos:
+    Solo deben utilizarse los cinco números
+    principales para construir las frecuencias.
 
-    3 = n1
-    4 = n2
-    5 = n3
-    6 = n4
-    7 = n5
+    La versión anterior utilizaba d[:5] y mezclaba:
 
-    JUSTIFICACIÓN:
+    - tipo_sorteo
+    - sorteo_id
+    - draw_date
 
-    La versión anterior utilizaba:
-
-        d[:5]
-
-    lo que incluía:
-
-        tipo_sorteo
-        sorteo_id
-        draw_date
-
-    contaminando completamente las frecuencias.
-
-    Esta versión utiliza exclusivamente los
-    cinco números principales del Baloto.
+    contaminando completamente las estadísticas.
     ==================================================
     """
 
