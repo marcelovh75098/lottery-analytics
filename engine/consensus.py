@@ -1,41 +1,71 @@
-from collections import Counter
+from collections import defaultdict
 
 
 def build_consensus(predictions):
     """
     ==================================================
-    CONSENSUS ENGINE
+    WEIGHTED CONSENSUS ENGINE
     ==================================================
 
-    Recibe predicciones de todas las estrategias.
+    Asigna puntuación considerando:
 
-    Devuelve los números más repetidos.
+    - Calidad histórica de la estrategia
+    - Posición dentro de la predicción
 
-    Ejemplo:
+    Momentum      -> peso 5
+    Hot Numbers   -> peso 4
+    Cold Numbers  -> peso 3
+    Meta          -> peso 2
+    Frequency     -> peso 1
 
-    frequency -> [1,2,3,4,5]
-    momentum  -> [2,3,4,5,6]
+    Además:
 
-    consenso:
+    posición 1 = +5
+    posición 2 = +4
+    posición 3 = +3
+    posición 4 = +2
+    posición 5 = +1
 
-    2
-    3
-    4
-    5
-
+    El resultado es un ranking mucho más robusto.
     ==================================================
     """
 
-    counter = Counter()
+    strategy_weights = {
 
-    for numbers in predictions.values():
+        "momentum": 5,
 
-        counter.update(numbers)
+        "hot_numbers": 4,
 
-    return dict(
-        sorted(
-            counter.items(),
-            key=lambda x: x[1],
-            reverse=True
+        "cold_numbers": 3,
+
+        "meta_portfolio": 2,
+
+        "frequency": 1
+
+    }
+
+    scores = defaultdict(float)
+
+    for strategy_name, numbers in predictions.items():
+
+        strategy_weight = strategy_weights.get(
+            strategy_name,
+            1
         )
+
+        for position, number in enumerate(numbers):
+
+            rank_bonus = 5 - position
+
+            scores[number] += (
+                strategy_weight *
+                rank_bonus
+            )
+
+    ranked = sorted(
+        scores.items(),
+        key=lambda x: x[1],
+        reverse=True
     )
+
+    return dict(ranked)
