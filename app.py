@@ -14,14 +14,13 @@ from strategies.frequency import FrequencyStrategy
 from strategies.hot_numbers import HotNumbersStrategy
 from strategies.cold_numbers import ColdNumbersStrategy
 from strategies.momentum import MomentumStrategy
+from strategies.meta_portfolio import MetaPortfolioStrategy
 
 # ==================================================
 # CONFIGURACIÓN GENERAL
 # ==================================================
-# JUSTIFICACIÓN:
-# Punto de entrada principal de Lottery Analytics.
-# Carga base de datos, histórico, ejecuta estrategias
-# y presenta ranking cuantitativo.
+# Lottery Quant Engine
+# Plataforma de análisis cuantitativo para Baloto.
 # ==================================================
 
 st.set_page_config(
@@ -33,18 +32,18 @@ st.set_page_config(
 st.title("🎯 Lottery Quant Engine")
 
 # ==================================================
-# INICIALIZAR BASE DE DATOS
+# INICIALIZACIÓN DE BASE DE DATOS
 # ==================================================
 
 init_db()
 
 # ==================================================
-# BOOTSTRAP DE DATOS
+# BOOTSTRAP DEL HISTÓRICO
 # ==================================================
 # Si la base está vacía:
-# - carga CSV histórico
-# - inserta sorteos
-# - devuelve estado
+# - Carga CSV histórico
+# - Inserta sorteos
+# - Devuelve estadísticas
 # ==================================================
 
 boot = bootstrap_if_empty()
@@ -52,7 +51,7 @@ boot = bootstrap_if_empty()
 st.write(boot)
 
 # ==================================================
-# CARGAR HISTÓRICO
+# CARGA DE DATOS
 # ==================================================
 
 draws = get_all_draws()
@@ -65,7 +64,7 @@ st.metric(
 )
 
 # ==================================================
-# VALIDACIÓN MÍNIMA
+# VALIDACIÓN
 # ==================================================
 
 if total_draws < 10:
@@ -77,14 +76,14 @@ if total_draws < 10:
     st.stop()
 
 # ==================================================
-# PANEL INFORMATIVO
+# ESTADO DEL MOTOR
 # ==================================================
 
 st.subheader("Engine Status")
 
 st.write({
     "draws_loaded": total_draws,
-    "strategies": 4,
+    "strategies": 5,
     "database": "ready"
 })
 
@@ -94,15 +93,32 @@ st.write({
 
 if st.button("Run Engine"):
 
+    frequency = FrequencyStrategy()
+
+    hot = HotNumbersStrategy()
+
+    cold = ColdNumbersStrategy()
+
+    momentum = MomentumStrategy()
+
+    meta = MetaPortfolioStrategy(
+        frequency,
+        hot,
+        cold,
+        momentum
+    )
+
     strategies = [
 
-        FrequencyStrategy(),
+        frequency,
 
-        HotNumbersStrategy(),
+        hot,
 
-        ColdNumbersStrategy(),
+        cold,
 
-        MomentumStrategy()
+        momentum,
+
+        meta
 
     ]
 
@@ -117,11 +133,15 @@ if st.button("Run Engine"):
 
     st.subheader("Portfolio Ranking")
 
-    st.write(portfolio)
+    st.write(
+        portfolio
+    )
 
     st.subheader("Strategy Metrics")
 
-    st.write(metrics)
+    st.write(
+        metrics
+    )
 
     st.subheader("Detailed Metrics")
 
@@ -131,19 +151,71 @@ if st.button("Run Engine"):
             f"Strategy: {strategy_name}"
         )
 
-        st.write(
-            {
-                "mean_hits": round(
-                    values["mean_hits"],
-                    4
-                ),
-                "volatility": round(
-                    values["volatility"],
-                    4
-                ),
-                "score_ratio": round(
-                    values["score_ratio"],
-                    4
-                )
-            }
-        )
+        st.write({
+
+            "mean_hits": round(
+                values["mean_hits"],
+                4
+            ),
+
+            "volatility": round(
+                values["volatility"],
+                4
+            ),
+
+            "score_ratio": round(
+                values["score_ratio"],
+                4
+            )
+
+        })
+
+# ==================================================
+# PREDICCIONES ACTUALES
+# ==================================================
+# Genera números usando TODO el histórico cargado.
+# ==================================================
+
+st.subheader("Today's Picks")
+
+frequency = FrequencyStrategy()
+
+hot = HotNumbersStrategy()
+
+cold = ColdNumbersStrategy()
+
+momentum = MomentumStrategy()
+
+meta = MetaPortfolioStrategy(
+    frequency,
+    hot,
+    cold,
+    momentum
+)
+
+from engine.features import build_features
+
+features = build_features(draws)
+
+predictions = {
+
+    "frequency":
+        frequency.predict(features),
+
+    "hot_numbers":
+        hot.predict(features),
+
+    "cold_numbers":
+        cold.predict(features),
+
+    "momentum":
+        momentum.predict(features),
+
+    "meta_portfolio":
+        meta.predict(features)
+
+}
+
+st.write(
+    predictions
+)
