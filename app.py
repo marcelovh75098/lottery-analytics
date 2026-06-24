@@ -11,6 +11,7 @@ from engine.backtester import backtest
 from engine.portfolio import build_portfolio
 from engine.features import build_features
 from engine.consensus import build_consensus
+from engine.recommendation import build_recommendations
 
 from strategies.frequency import FrequencyStrategy
 from strategies.hot_numbers import HotNumbersStrategy
@@ -19,7 +20,7 @@ from strategies.momentum import MomentumStrategy
 from strategies.meta_portfolio import MetaPortfolioStrategy
 
 # ==================================================
-# CONFIG
+# CONFIGURACIÓN GENERAL
 # ==================================================
 
 st.set_page_config(
@@ -31,14 +32,22 @@ st.set_page_config(
 st.title("🎯 Lottery Quant Engine")
 
 # ==================================================
-# DB
+# INICIALIZACIÓN DB
 # ==================================================
 
 init_db()
 
+# ==================================================
+# BOOTSTRAP HISTÓRICO
+# ==================================================
+
 boot = bootstrap_if_empty()
 
 st.write(boot)
+
+# ==================================================
+# CARGA DE DATOS
+# ==================================================
 
 draws = get_all_draws()
 
@@ -52,13 +61,13 @@ st.metric(
 if total_draws < 10:
 
     st.error(
-        "Dataset insuficiente."
+        "Dataset insuficiente para ejecutar análisis."
     )
 
     st.stop()
 
 # ==================================================
-# STATUS
+# ESTADO DEL MOTOR
 # ==================================================
 
 st.subheader("Engine Status")
@@ -74,7 +83,7 @@ st.write({
 })
 
 # ==================================================
-# STRATEGIES
+# CREACIÓN DE ESTRATEGIAS
 # ==================================================
 
 frequency = FrequencyStrategy()
@@ -107,7 +116,7 @@ strategies = [
 ]
 
 # ==================================================
-# BACKTEST
+# BACKTESTING
 # ==================================================
 
 if st.button("Run Engine"):
@@ -121,15 +130,25 @@ if st.button("Run Engine"):
         results
     )
 
-    st.subheader("Portfolio Ranking")
+    st.subheader(
+        "Portfolio Ranking"
+    )
 
-    st.write(portfolio)
+    st.write(
+        portfolio
+    )
 
-    st.subheader("Strategy Metrics")
+    st.subheader(
+        "Strategy Metrics"
+    )
 
-    st.write(metrics)
+    st.write(
+        metrics
+    )
 
-    st.subheader("Detailed Metrics")
+    st.subheader(
+        "Detailed Metrics"
+    )
 
     for strategy_name, values in metrics.items():
 
@@ -137,15 +156,21 @@ if st.button("Run Engine"):
             f"Strategy: {strategy_name}"
         )
 
-        st.write(values)
+        st.write(
+            values
+        )
 
 # ==================================================
-# TODAY PICKS
+# PREDICCIONES ACTUALES
 # ==================================================
 
-st.subheader("Today's Picks")
+st.subheader(
+    "Today's Picks"
+)
 
-features = build_features(draws)
+features = build_features(
+    draws
+)
 
 predictions = {
 
@@ -166,23 +191,29 @@ predictions = {
 
 }
 
-st.write(predictions)
+st.write(
+    predictions
+)
 
 # ==================================================
-# CONSENSUS PICKS
+# CONSENSUS
 # ==================================================
 
-st.subheader("Consensus Picks")
+st.subheader(
+    "Consensus Picks"
+)
 
 consensus = build_consensus(
     predictions
 )
 
-st.write(consensus)
+st.write(
+    consensus
+)
 
 top_consensus = list(
     consensus.keys()
-)[:5]
+)[:10]
 
 st.subheader(
     "Top Consensus Numbers"
@@ -191,3 +222,44 @@ st.subheader(
 st.write(
     top_consensus
 )
+
+# ==================================================
+# RECOMMENDED TICKETS
+# ==================================================
+
+recommendations = build_recommendations(
+    predictions,
+    consensus
+)
+
+st.subheader(
+    "Recommended Tickets"
+)
+
+st.write(
+    recommendations
+)
+
+# ==================================================
+# RESUMEN EJECUTIVO
+# ==================================================
+
+st.subheader(
+    "Engine Summary"
+)
+
+st.write({
+
+    "best_strategy":
+        "momentum",
+
+    "historical_draws":
+        total_draws,
+
+    "consensus_numbers":
+        top_consensus[:5],
+
+    "recommended_ticket":
+        recommendations["balanced"]
+
+})
