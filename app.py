@@ -25,6 +25,18 @@ from strategies.cold_numbers import ColdNumbersStrategy
 from strategies.momentum import MomentumStrategy
 from strategies.meta_portfolio import MetaPortfolioStrategy
 
+
+from engine.strategy_weights import (
+    build_strategy_weights
+)
+
+from engine.weighted_consensus import (
+    build_weighted_consensus
+)
+
+from engine.portfolio_generator import (
+    generate_portfolios
+)
 st.set_page_config(
     page_title="Lottery Quant Engine",
     page_icon="🎯",
