@@ -21,16 +21,25 @@ def build_features(draws):
         superbalota
     )
 
-    Solo deben utilizarse los cinco números
-    principales para construir las frecuencias.
+    JUSTIFICACIÓN
 
-    La versión anterior utilizaba d[:5] y mezclaba:
+    El motor necesita distintas ventanas temporales
+    para soportar múltiples estrategias:
 
-    - tipo_sorteo
-    - sorteo_id
-    - draw_date
+    frequency:
+        Historial completo.
 
-    contaminando completamente las estadísticas.
+    hot_numbers:
+        Últimos 30 sorteos.
+
+    cold_numbers:
+        Últimos 100 sorteos.
+
+    momentum:
+        Compara últimos 30 contra últimos 200.
+
+    Todas las estrategias reciben la información
+    desde un único punto centralizado.
     ==================================================
     """
 
@@ -51,8 +60,12 @@ def build_features(draws):
     total = sum(freq.values())
 
     if total == 0:
+
         return {
-            "frequency": {}
+            "frequency": {},
+            "recent_draws": [],
+            "cold_window_draws": [],
+            "long_term_draws": []
         }
 
     frequency = {
@@ -60,6 +73,15 @@ def build_features(draws):
         for number, count in freq.items()
     }
 
+    recent_draws = draws[-30:]
+
+    cold_window_draws = draws[-100:]
+
+    long_term_draws = draws[-200:]
+
     return {
-        "frequency": frequency
+        "frequency": frequency,
+        "recent_draws": recent_draws,
+        "cold_window_draws": cold_window_draws,
+        "long_term_draws": long_term_draws
     }
