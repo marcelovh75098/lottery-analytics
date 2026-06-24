@@ -4,14 +4,21 @@ def build_recommendations(
 ):
     """
     ==================================================
-    RECOMMENDATION ENGINE
+    RECOMMENDATION ENGINE v2
     ==================================================
 
-    Genera tres boletos:
+    Genera tres tipos de boletos:
 
-    Conservative
-    Momentum
-    Balanced
+    Conservative:
+        Números con mayor consenso.
+
+    Momentum:
+        Mejor estrategia histórica.
+
+    Balanced:
+        Combina Momentum + Hot + Consensus
+        evitando duplicados para generar un
+        boleto realmente diferente.
 
     ==================================================
     """
@@ -26,29 +33,50 @@ def build_recommendations(
 
     balanced = []
 
-    for number in predictions["momentum"]:
+    #
+    # 1 número líder de Momentum
+    #
 
-        if number not in balanced:
-            balanced.append(number)
+    balanced.append(
+        predictions["momentum"][0]
+    )
+
+    #
+    # 2 números de Hot Numbers
+    #
 
     for number in predictions["hot_numbers"]:
 
         if number not in balanced:
+
             balanced.append(number)
+
+        if len(balanced) >= 3:
+            break
+
+    #
+    # Completar con consenso
+    #
 
     for number in consensus.keys():
 
         if number not in balanced:
+
             balanced.append(number)
 
-    balanced = balanced[:5]
+        if len(balanced) >= 5:
+            break
 
     return {
 
-        "conservative": conservative,
+        "conservative":
+            conservative,
 
-        "momentum": momentum,
+        "momentum":
+            momentum,
 
-        "balanced": balanced
+        "balanced":
+            balanced
 
     }
+
