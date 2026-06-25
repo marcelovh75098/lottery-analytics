@@ -3,7 +3,9 @@ import streamlit as st
 from database.db import (
     init_db,
     get_all_draws,
-    get_total_draws
+    get_total_draws,
+    save_prediction,
+    get_predictions_history
 )
 
 from engine.bootstrap import bootstrap_if_empty
