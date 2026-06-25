@@ -49,6 +49,9 @@ from engine.best_portfolio import (
 from engine.hybrid_recommendation import (
     build_hybrid_recommendation
 )
+from engine.global_ranking import (
+    build_global_ranking
+)
 st.set_page_config(
     page_title="Lottery Quant Engine",
     page_icon="🎯",
@@ -314,6 +317,10 @@ st.write(
 analytics = build_number_analytics(
     draws
 )
+global_ranking = build_global_ranking(
+    weighted_consensus,
+    analytics
+)
 
 ranked_numbers = sorted(
     analytics.items(),
@@ -379,6 +386,31 @@ st.subheader(
 st.write(
     top_ranked_numbers
 )
+# ==================================================
+# GLOBAL RANKING
+# ==================================================
+
+st.subheader(
+    "Global Ranking Top 20"
+)
+
+for position, (number, score) in enumerate(
+    global_ranking[:20],
+    start=1
+):
+
+    st.write({
+
+        "rank": position,
+
+        "number": number,
+
+        "score": round(
+            score,
+            4
+        )
+
+    })
 # ==================================================
 # ELITE TICKET
 # ==================================================
