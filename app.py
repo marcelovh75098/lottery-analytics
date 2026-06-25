@@ -40,6 +40,9 @@ from engine.portfolio_generator import (
 from engine.portfolio_backtester import (
     backtest_portfolios
 )
+from engine.best_portfolio import (
+    find_best_portfolio
+)
 st.set_page_config(
     page_title="Lottery Quant Engine",
     page_icon="🎯",
@@ -397,6 +400,17 @@ st.subheader(
 
 st.write(
     portfolio_results
+)
+best_portfolio = find_best_portfolio(
+    portfolio_results
+)
+
+st.subheader(
+    "Best Historical Portfolio"
+)
+
+st.write(
+    best_portfolio
 )
 # ==================================================
 # ENGINE SUMMARY
