@@ -8,7 +8,7 @@ from database.db import (
     save_prediction,
     get_predictions_history
 )
-
+                
 from engine.bootstrap import bootstrap_if_empty
 from engine.backtester import backtest
 from engine.portfolio import build_portfolio
@@ -45,6 +45,9 @@ from engine.portfolio_backtester import (
 )
 from engine.best_portfolio import (
     find_best_portfolio
+)
+from engine.hybrid_recommendation import (
+    build_hybrid_recommendation
 )
 st.set_page_config(
     page_title="Lottery Quant Engine",
@@ -376,7 +379,64 @@ st.subheader(
 st.write(
     top_ranked_numbers
 )
+# ==================================================
+# ELITE TICKET
+# ==================================================
 
+elite_ticket = build_hybrid_recommendation(
+    weighted_consensus,
+    ranked_numbers
+)
+
+st.subheader(
+    "Elite Ticket"
+)
+
+st.write(
+    elite_ticket
+)
+# ==================================================
+# ELITE TICKET
+# ==================================================
+
+elite_ticket = build_hybrid_recommendation(
+    weighted_consensus,
+    ranked_numbers
+)
+
+st.subheader(
+    "Elite Ticket"
+)
+
+st.write(
+    elite_ticket
+)
+
+# ==================================================
+# ELITE TICKET BACKTEST
+# ==================================================
+
+elite_results = backtest_tickets(
+
+    {
+        "elite": elite_ticket
+    },
+
+    draws
+
+)
+
+st.subheader(
+    "Elite Ticket Backtest"
+)
+
+st.write(
+    elite_results
+)
+
+# ==================================================
+# BEST NUMBERS PORTFOLIO
+# ==================================================
 # ==================================================
 # BEST NUMBERS PORTFOLIO
 # ==================================================
