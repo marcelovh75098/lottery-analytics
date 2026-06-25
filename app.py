@@ -223,13 +223,29 @@ st.write(
     consensus
 )
 
+st.subheader(
+    "Strategy Weights"
+)
+
+st.write(
+    strategy_weights
+)
+
+st.subheader(
+    "Weighted Consensus"
+)
+
+st.write(
+    weighted_consensus
+)
 # ==================================================
 # RECOMMENDATIONS
 # ==================================================
 
 recommendations = build_recommendations(
     predictions,
-    consensus
+    weighted_consensus
+
 )
 
 st.subheader(
@@ -414,6 +430,22 @@ st.subheader(
 
 st.write(
     best_portfolio
+)
+strategy_weights = build_strategy_weights(
+    metrics
+)
+
+weighted_consensus = build_weighted_consensus(
+    predictions,
+    strategy_weights
+)
+strategy_weights = build_strategy_weights(
+    metrics
+)
+
+weighted_consensus = build_weighted_consensus(
+    predictions,
+    strategy_weights
 )
 # ==================================================
 # ENGINE SUMMARY
