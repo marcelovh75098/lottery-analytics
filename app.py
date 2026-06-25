@@ -58,6 +58,7 @@ from engine.global_ranking import (
 from engine.ultimate_ticket import (
     build_ultimate_ticket
 )
+from engine.meta_score import ( build_meta_score)
 
 st.set_page_config(
     page_title="Lottery Quant Engine",
@@ -324,6 +325,24 @@ st.write(
 analytics = build_number_analytics(
     draws
 )
+meta_score = build_meta_score(
+    analytics,
+    weighted_consensus
+)
+
+st.subheader("Meta Score Ranking")
+
+for i, (number, score) in enumerate(meta_score[:20], start=1):
+
+    st.write({
+
+        "rank": i,
+
+        "number": number,
+
+        "score": round(score,4)
+
+    })
 global_score = build_global_score(
 
     analytics,
@@ -465,10 +484,13 @@ elite_ticket = [
 # ELITE TICKET
 # ==================================================
 
-elite_ticket = build_hybrid_recommendation(
-    weighted_consensus,
-    ranked_numbers
-)
+elite_ticket = [
+
+    number
+
+    for number, _ in meta_score[:5]
+
+]
 
 st.subheader(
     "Elite Ticket"
