@@ -206,6 +206,20 @@ st.subheader(
 st.write(
     predictions
 )
+
+# ==================================================
+# BACKTEST AUTOMÁTICO
+# ==================================================
+
+results = backtest(
+    strategies,
+    draws
+)
+
+portfolio, metrics = build_portfolio(
+    results
+)
+
 strategy_weights = build_strategy_weights(
     metrics
 )
@@ -222,14 +236,6 @@ weighted_consensus = build_weighted_consensus(
 consensus = weighted_consensus
 
 st.subheader(
-    "Consensus Picks"
-)
-
-st.write(
-    consensus
-)
-
-st.subheader(
     "Strategy Weights"
 )
 
@@ -244,6 +250,7 @@ st.subheader(
 st.write(
     weighted_consensus
 )
+
 # ==================================================
 # RECOMMENDATIONS
 # ==================================================
