@@ -49,12 +49,16 @@ from engine.best_portfolio import (
 from engine.hybrid_recommendation import (
     build_hybrid_recommendation
 )
+from engine.score_engine import (
+    build_global_score
+)
 from engine.global_ranking import (
     build_global_ranking
 )
 from engine.ultimate_ticket import (
     build_ultimate_ticket
 )
+
 st.set_page_config(
     page_title="Lottery Quant Engine",
     page_icon="🎯",
@@ -320,6 +324,15 @@ st.write(
 analytics = build_number_analytics(
     draws
 )
+global_score = build_global_score(
+
+    analytics,
+
+    weighted_consensus,
+
+    predictions
+
+)
 global_ranking = build_global_ranking(
     weighted_consensus,
     analytics
@@ -389,6 +402,27 @@ st.subheader(
 st.write(
     top_ranked_numbers
 )
+st.subheader(
+    "Global Score Ranking"
+)
+
+for rank, (number, score) in enumerate(
+
+    global_score[:20],
+
+    start=1
+
+):
+
+    st.write({
+
+        "rank": rank,
+
+        "number": number,
+
+        "score": round(score,4)
+
+    })
 # ==================================================
 # GLOBAL RANKING
 # ==================================================
@@ -418,26 +452,15 @@ for position, (number, score) in enumerate(
 # ELITE TICKET
 # ==================================================
 
-elite_ticket = build_hybrid_recommendation(
-    weighted_consensus,
-    ranked_numbers
-)
-ultimate_ticket = build_ultimate_ticket(
+elite_ticket = [
 
-    weighted_consensus,
+    number
 
-    global_ranking,
+    for number, score
 
-    predictions["momentum"]
+    in global_score[:5]
 
-)
-st.subheader(
-    "Elite Ticket"
-)
-
-st.write(
-    elite_ticket
-)
+]
 # ==================================================
 # ELITE TICKET
 # ==================================================
