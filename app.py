@@ -139,18 +139,18 @@ strategies = [
 # BACKTEST
 # ==================================================
 
+results = backtest(
+    strategies,
+    draws
+)
+
+portfolio, metrics = build_portfolio(
+    results
+)
+
 if st.button(
     "Run Engine"
 ):
-
-    results = backtest(
-        strategies,
-        draws
-    )
-
-    portfolio, metrics = build_portfolio(
-        results
-    )
 
     st.subheader(
         "Portfolio Ranking"
@@ -206,14 +206,20 @@ st.subheader(
 st.write(
     predictions
 )
+strategy_weights = build_strategy_weights(
+    metrics
+)
+
+weighted_consensus = build_weighted_consensus(
+    predictions,
+    strategy_weights
+)
 
 # ==================================================
 # CONSENSUS
 # ==================================================
 
-consensus = build_consensus(
-    predictions
-)
+consensus = weighted_consensus
 
 st.subheader(
     "Consensus Picks"
@@ -431,22 +437,7 @@ st.subheader(
 st.write(
     best_portfolio
 )
-strategy_weights = build_strategy_weights(
-    metrics
-)
 
-weighted_consensus = build_weighted_consensus(
-    predictions,
-    strategy_weights
-)
-strategy_weights = build_strategy_weights(
-    metrics
-)
-
-weighted_consensus = build_weighted_consensus(
-    predictions,
-    strategy_weights
-)
 # ==================================================
 # ENGINE SUMMARY
 # ==================================================
