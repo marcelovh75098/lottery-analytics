@@ -52,6 +52,9 @@ from engine.hybrid_recommendation import (
 from engine.global_ranking import (
     build_global_ranking
 )
+from engine.ultimate_ticket import (
+    build_ultimate_ticket
+)
 st.set_page_config(
     page_title="Lottery Quant Engine",
     page_icon="🎯",
@@ -419,7 +422,15 @@ elite_ticket = build_hybrid_recommendation(
     weighted_consensus,
     ranked_numbers
 )
+ultimate_ticket = build_ultimate_ticket(
 
+    weighted_consensus,
+
+    global_ranking,
+
+    predictions["momentum"]
+
+)
 st.subheader(
     "Elite Ticket"
 )
