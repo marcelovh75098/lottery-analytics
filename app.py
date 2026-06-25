@@ -37,6 +37,9 @@ from engine.weighted_consensus import (
 from engine.portfolio_generator import (
     generate_portfolios
 )
+from engine.portfolio_backtester import (
+    backtest_portfolios
+)
 st.set_page_config(
     page_title="Lottery Quant Engine",
     page_icon="🎯",
@@ -379,6 +382,22 @@ st.write(
     portfolio_tickets
 )
 
+# ==================================================
+# PORTFOLIO BACKTEST
+# ==================================================
+
+portfolio_results = backtest_portfolios(
+    portfolio_tickets,
+    draws
+)
+
+st.subheader(
+    "Portfolio Backtest"
+)
+
+st.write(
+    portfolio_results
+)
 # ==================================================
 # ENGINE SUMMARY
 # ==================================================
