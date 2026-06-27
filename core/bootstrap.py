@@ -1,145 +1,147 @@
 from dataclasses import dataclass
 from typing import Any
 
+import pandas as pd
+
+from database.db import (
+    init_db,
+    get_all_draws,
+    get_total_draws,
+)
+
+from engine.bootstrap import bootstrap_database
+from engine.features import build_features
+
 
 @dataclass
 class AppContext:
-
     draws: Any
+    dataframe: pd.DataFrame
     features: Any
-    strategies: Any
-    portfolio: Any
-    ranking: Any
-    elite: Any
-    report: Any
-    metrics: Any
+    metrics: dict
+    frequency_df: pd.DataFrame
+    hot_numbers: pd.DataFrame
+    cold_numbers: pd.DataFrame
+    parity: list
 
 
-def initialize_system():
-
+def initialize_system() -> AppContext:
     """
-    Punto único de inicialización.
+    Inicializa Lottery Analytics.
 
-    Toda la lógica de carga del sistema se centraliza aquí.
-
-    app.py únicamente llamará esta función.
+    Este módulo únicamente prepara el contexto global que utilizará
+    toda la interfaz de usuario.
     """
 
-    # ============================
-    # IMPORTS DIFERIDOS
-    # ============================
-
-    # Se importan aquí para evitar
-    # dependencias circulares.
-
-    from database.database import init_database
-
-    from engine.bootstrap import bootstrap_database
-
-    from engine.feature_engineering import build_features
-
-    from engine.portfolio import PortfolioEngine
-
-    from engine.ranking import RankingEngine
-
-    from engine.elite import EliteEngine
-
-    from reports.report_builder import ReportBuilder
-
-    from predictors.predictor import Predictor
-
-    from database.repository import LotteryRepository
-
-    # ============================
+    # -------------------------------------------------------
     # Base de datos
-    # ============================
+    # -------------------------------------------------------
 
-    init_database()
-
+    init_db()
     bootstrap_database()
 
-    repository = LotteryRepository()
+    draws = get_all_draws()
 
-    draws = repository.get_all_draws()
+    # -------------------------------------------------------
+    # DataFrame principal
+    # -------------------------------------------------------
 
-    # ============================
-    # Features
-    # ============================
+    dataframe = pd.DataFrame(
+        draws,
+        columns=[
+            "n1",
+            "n2",
+            "n3",
+            "n4",
+            "n5",
+            "superbalota",
+        ],
+    )
+
+    # -------------------------------------------------------
+    # Feature Engineering
+    # -------------------------------------------------------
 
     features = build_features(draws)
 
-    # ============================
-    # Predictor
-    # ============================
+    # -------------------------------------------------------
+    # Frecuencias
+    # -------------------------------------------------------
 
-    predictor = Predictor()
+    numbers = []
 
-    predictions = predictor.predict(features)
+    for column in ["n1", "n2", "n3", "n4", "n5"]:
+        numbers.extend(dataframe[column].tolist())
 
-    # ============================
-    # Portfolio
-    # ============================
-
-    portfolio_engine = PortfolioEngine()
-
-    portfolio = portfolio_engine.build(predictions)
-
-    # ============================
-    # Ranking
-    # ============================
-
-    ranking_engine = RankingEngine()
-
-    ranking = ranking_engine.build()
-
-    # ============================
-    # Elite
-    # ============================
-
-    elite_engine = EliteEngine()
-
-    elite = elite_engine.build(
-        predictions=predictions,
-        ranking=ranking
+    frequency = (
+        pd.Series(numbers)
+        .value_counts()
+        .sort_index()
     )
 
-    # ============================
-    # Reporte
-    # ============================
-
-    report_builder = ReportBuilder()
-
-    report = report_builder.build(
-        elite=elite,
-        portfolio=portfolio
+    frequency_df = pd.DataFrame(
+        {
+            "numero": frequency.index,
+            "frecuencia": frequency.values,
+        }
     )
+
+    # -------------------------------------------------------
+    # Hot / Cold Numbers
+    # -------------------------------------------------------
+
+    hot_numbers = (
+        frequency_df
+        .sort_values(
+            "frecuencia",
+            ascending=False,
+        )
+        .head(15)
+        .reset_index(drop=True)
+    )
+
+    cold_numbers = (
+        frequency_df
+        .sort_values(
+            "frecuencia",
+            ascending=True,
+        )
+        .head(15)
+        .reset_index(drop=True)
+    )
+
+    # -------------------------------------------------------
+    # Paridad
+    # -------------------------------------------------------
+
+    pares = sum(1 for n in numbers if n % 2 == 0)
+    impares = len(numbers) - pares
+
+    parity = [pares, impares]
+
+    # -------------------------------------------------------
+    # Métricas generales
+    # -------------------------------------------------------
 
     metrics = {
-
-        "total_draws": len(draws),
-
-        "strategies": len(ranking),
-
-        "predictions": len(predictions)
-
+        "total_draws": get_total_draws(),
+        "numbers_analyzed": len(numbers),
+        "strategies": 0,
+        "predictions": 0,
+        "database_status": "ONLINE",
     }
 
+    # -------------------------------------------------------
+    # Contexto global
+    # -------------------------------------------------------
+
     return AppContext(
-
         draws=draws,
-
+        dataframe=dataframe,
         features=features,
-
-        strategies=ranking,
-
-        portfolio=portfolio,
-
-        ranking=ranking,
-
-        elite=elite,
-
-        report=report,
-
-        metrics=metrics
-
+        metrics=metrics,
+        frequency_df=frequency_df,
+        hot_numbers=hot_numbers,
+        cold_numbers=cold_numbers,
+        parity=parity,
     )
