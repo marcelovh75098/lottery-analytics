@@ -1,5 +1,5 @@
 from database.db import (
-    get_connection,
+    draw_exists,
     insert_draw
 )
 
@@ -10,72 +10,48 @@ from scrapers.baloto_scraper import (
 
 def actualizar_base_datos():
     """
-    Consulta la página oficial de Baloto.
+    Consulta el último sorteo publicado.
 
-    Si el último sorteo no existe en SQLite,
-    lo inserta automáticamente.
+    Si ya existe en SQLite no hace nada.
 
-    Nunca duplica registros.
+    Si es nuevo lo agrega automáticamente.
     """
 
-    resultado = obtener_ultimo_sorteo()
+    ultimo = obtener_ultimo_sorteo()
 
-    if not resultado.get("success", False):
-        return resultado
+    if not ultimo["success"]:
+        return ultimo
 
-    conn = get_connection()
-    cur = conn.cursor()
-
-    cur.execute(
-        """
-        SELECT COUNT(*)
-        FROM baloto_draws
-        WHERE sorteo_id=?
-        """,
-        (
-            resultado["sorteo_id"],
-        )
-    )
-
-    existe = cur.fetchone()[0]
-
-    if existe > 0:
-
-        conn.close()
+    if draw_exists(ultimo["sorteo_id"]):
 
         return {
             "success": True,
             "updated": False,
-            "message": "La base ya está actualizada."
+            "message": "La base ya está actualizada.",
+            "draw": ultimo
         }
 
     insert_draw(
 
-        resultado["tipo_sorteo"],
+        ultimo["tipo_sorteo"],
 
-        resultado["sorteo_id"],
+        ultimo["sorteo_id"],
 
-        resultado["draw_date"],
+        ultimo["draw_date"],
 
-        resultado["n1"],
+        ultimo["n1"],
+        ultimo["n2"],
+        ultimo["n3"],
+        ultimo["n4"],
+        ultimo["n5"],
 
-        resultado["n2"],
-
-        resultado["n3"],
-
-        resultado["n4"],
-
-        resultado["n5"],
-
-        resultado["superbalota"]
+        ultimo["superbalota"]
 
     )
-
-    conn.close()
 
     return {
         "success": True,
         "updated": True,
-        "message": "Nuevo sorteo agregado.",
-        "draw": resultado
+        "message": "Nuevo sorteo agregado correctamente.",
+        "draw": ultimo
     }
