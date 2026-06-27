@@ -8,37 +8,31 @@ def get_connection():
 
 
 def init_db():
+    """
+    Crea la tabla principal.
+    """
 
     conn = get_connection()
     cur = conn.cursor()
 
     cur.execute("""
         CREATE TABLE IF NOT EXISTS baloto_draws (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            tipo_sorteo TEXT,
-            sorteo_id INTEGER,
-            draw_date TEXT,
-            n1 INTEGER,
-            n2 INTEGER,
-            n3 INTEGER,
-            n4 INTEGER,
-            n5 INTEGER,
-            superbalota INTEGER,
-            UNIQUE(tipo_sorteo, sorteo_id)
-        )
-    """)
 
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS predictions_history (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            prediction_date TEXT,
-            strategy TEXT,
+
+            tipo_sorteo TEXT,
+
+            sorteo_id INTEGER UNIQUE,
+
+            draw_date TEXT,
+
             n1 INTEGER,
             n2 INTEGER,
             n3 INTEGER,
             n4 INTEGER,
             n5 INTEGER,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+            superbalota INTEGER
         )
     """)
 
@@ -57,108 +51,148 @@ def insert_draw(
     n5,
     superbalota
 ):
+    """
+    Inserta únicamente sorteos nuevos.
+    """
 
     conn = get_connection()
+
     cur = conn.cursor()
 
     cur.execute("""
-        INSERT OR IGNORE INTO baloto_draws (
+
+        INSERT OR IGNORE INTO baloto_draws(
+
             tipo_sorteo,
+
             sorteo_id,
+
             draw_date,
+
             n1,
             n2,
             n3,
             n4,
             n5,
+
             superbalota
+
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (
+
+        VALUES(
+
+            ?,?,?,?,?,?,?,?,?
+
+        )
+
+    """,(
+
         tipo_sorteo,
+
         sorteo_id,
+
         draw_date,
+
         n1,
         n2,
         n3,
         n4,
         n5,
+
         superbalota
+
     ))
 
     conn.commit()
+
+    inserted = cur.rowcount
+
     conn.close()
 
+    return inserted > 0
 
-def save_prediction(
-    prediction_date,
-    strategy,
-    numbers
-):
+
+def draw_exists(sorteo_id):
+    """
+    Verifica si el sorteo ya existe.
+    """
 
     conn = get_connection()
+
     cur = conn.cursor()
 
     cur.execute("""
-        INSERT INTO predictions_history (
-            prediction_date,
-            strategy,
-            n1,
-            n2,
-            n3,
-            n4,
-            n5
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    """, (
-        prediction_date,
-        strategy,
-        numbers[0],
-        numbers[1],
-        numbers[2],
-        numbers[3],
-        numbers[4]
-    ))
 
-    conn.commit()
+        SELECT 1
+
+        FROM baloto_draws
+
+        WHERE sorteo_id=?
+
+    """,(sorteo_id,))
+
+    existe = cur.fetchone() is not None
+
     conn.close()
 
+    return existe
 
-def get_predictions_history(limit=100):
+
+def get_last_draw():
+    """
+    Obtiene el último sorteo almacenado.
+    """
 
     conn = get_connection()
+
     cur = conn.cursor()
 
     cur.execute("""
+
         SELECT
-            prediction_date,
-            strategy,
+
+            tipo_sorteo,
+
+            sorteo_id,
+
+            draw_date,
+
             n1,
             n2,
             n3,
             n4,
             n5,
-            created_at
-        FROM predictions_history
-        ORDER BY id DESC
-        LIMIT ?
-    """, (limit,))
 
-    rows = cur.fetchall()
+            superbalota
+
+        FROM baloto_draws
+
+        ORDER BY sorteo_id DESC
+
+        LIMIT 1
+
+    """)
+
+    row = cur.fetchone()
 
     conn.close()
 
-    return rows
+    return row
 
 
 def get_total_draws():
 
     conn = get_connection()
+
     cur = conn.cursor()
 
-    cur.execute(
-        "SELECT COUNT(*) FROM baloto_draws"
-    )
+    cur.execute("""
+
+        SELECT COUNT(*)
+
+        FROM baloto_draws
+
+    """)
 
     total = cur.fetchone()[0]
 
@@ -170,21 +204,29 @@ def get_total_draws():
 def get_all_draws():
 
     conn = get_connection()
+
     cur = conn.cursor()
 
     cur.execute("""
+
         SELECT
-            tipo_sorteo,
-            sorteo_id,
-            draw_date,
+
             n1,
+
             n2,
+
             n3,
+
             n4,
+
             n5,
+
             superbalota
+
         FROM baloto_draws
-        ORDER BY draw_date
+
+        ORDER BY sorteo_id
+
     """)
 
     rows = cur.fetchall()
