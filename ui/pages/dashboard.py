@@ -60,3 +60,12 @@ def render_dashboard(context):
         context.ranking,
         use_container_width=True
     )
+from ui.charts import (
+    frequency_chart,
+    parity_chart
+)
+
+from ui.system_status import render_system_status
+
+import plotly.express as px
+import pandas as pd
