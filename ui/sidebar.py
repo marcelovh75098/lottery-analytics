@@ -1,24 +1,73 @@
 import streamlit as st
 
 
-def render_sidebar():
+MENU = {
 
-    st.sidebar.title("Lottery Analytics")
+    "Dashboard":"📊",
 
-    st.sidebar.success("Sistema Online")
+    "Analítica":"📈",
 
-    st.sidebar.divider()
+    "Predicciones":"🎯",
 
-    st.sidebar.write("Dashboard")
+    "Estrategias":"🧠",
 
-    st.sidebar.write("Ranking")
+    "Simulador":"🧪",
 
-    st.sidebar.write("Estrategias")
+    "Configuración":"⚙️"
 
-    st.sidebar.write("Analytics")
+}
 
-    st.sidebar.write("Backtesting")
 
-    st.sidebar.write("Tickets")
+def render_sidebar(context):
 
-    st.sidebar.write("Configuración")
+    with st.sidebar:
+
+        st.image("assets/logo.png", width=90)
+
+        st.title("Lottery Analytics")
+
+        st.caption("Versión 2")
+
+        st.divider()
+
+        option = st.radio(
+
+            "",
+
+            list(MENU.keys()),
+
+            format_func=lambda x:f"{MENU[x]}  {x}"
+
+        )
+
+        st.divider()
+
+        st.metric(
+
+            "Sorteos",
+
+            context.metrics["total_draws"]
+
+        )
+
+        st.metric(
+
+            "Estrategias",
+
+            context.metrics["strategies"]
+
+        )
+
+        st.metric(
+
+            "Predicciones",
+
+            context.metrics["predictions"]
+
+        )
+
+        st.divider()
+
+        st.caption("© Lottery Analytics")
+
+    return option
