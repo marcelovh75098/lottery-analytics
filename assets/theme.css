@@ -35,3 +35,30 @@ p,label,span{
 color:#CBD5E1;
 
 }
+.block-container{
+
+padding-top:2rem;
+
+padding-left:2rem;
+
+padding-right:2rem;
+
+padding-bottom:2rem;
+
+}
+
+div[data-testid="stDataFrame"]{
+
+border-radius:18px;
+
+overflow:hidden;
+
+border:1px solid #334155;
+
+}
+
+hr{
+
+border-color:#334155;
+
+}
