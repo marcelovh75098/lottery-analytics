@@ -1,200 +1,71 @@
 import streamlit as st
 
-from database.db import (
-    init_db,
-    get_all_draws,
-    get_total_draws
-)
+from core.bootstrap import initialize_system
 
-from engine.bootstrap import bootstrap_if_empty
-from engine.update_database import actualizar_base_datos
-from engine.features import build_features
-from engine.backtester import backtest
-from engine.portfolio import build_portfolio
-from engine.ranking import build_global_ranking
-from engine.strategy_manager import load_strategies
-from engine.predictor import Predictor
-from engine.elite import EliteEngine
-from engine.report import build_report
-
-from ui.dashboard import load_theme
 from ui.sidebar import render_sidebar
-from ui.kpi import render_kpis
-from ui.status import render_status
-from ui.ranking_table import render_ranking
 
+from ui.pages.dashboard import render_dashboard
+from ui.pages.analytics import render_analytics
+from ui.pages.predictions import render_predictions
+from ui.pages.strategies import render_strategies
+from ui.pages.simulator import render_simulator
+from ui.pages.settings import render_settings
 
-# ============================================================
-# CONFIGURACIÓN
-# ============================================================
 
-st.set_page_config(
-    page_title="Lottery Quant Engine",
-    page_icon="🎯",
-    layout="wide"
-)
+def configure_page():
 
-load_theme()
+    st.set_page_config(
+        page_title="Lottery Analytics V2",
+        page_icon="🎯",
+        layout="wide",
+        initial_sidebar_state="expanded"
+    )
 
-render_sidebar()
 
-st.title("🎯 Lottery Quant Engine")
+def load_css():
 
+    with open("assets/theme.css", encoding="utf8") as f:
+        st.markdown(
+            f"<style>{f.read()}</style>",
+            unsafe_allow_html=True
+        )
 
-# ============================================================
-# BASE DE DATOS
-# ============================================================
 
-init_db()
+def main():
 
-boot = bootstrap_if_empty()
+    configure_page()
 
-update = actualizar_base_datos()
+    load_css()
 
-draws = get_all_draws()
+    context = initialize_system()
 
-total_draws = get_total_draws()
+    page = render_sidebar(context)
 
-if total_draws < 3:
+    if page == "Dashboard":
 
-    st.error("Dataset insuficiente.")
+        render_dashboard(context)
 
-    st.stop()
+    elif page == "Analítica":
 
+        render_analytics(context)
 
-# ============================================================
-# FEATURES
-# ============================================================
+    elif page == "Predicciones":
 
-features = build_features(draws)
+        render_predictions(context)
 
+    elif page == "Estrategias":
 
-# ============================================================
-# ESTRATEGIAS
-# ============================================================
+        render_strategies(context)
 
-strategies = load_strategies()
+    elif page == "Simulador":
 
+        render_simulator(context)
 
-# ============================================================
-# BACKTEST
-# ============================================================
+    elif page == "Configuración":
 
-results = backtest(
-    strategies,
-    draws
-)
+        render_settings(context)
 
-portfolio, metrics = build_portfolio(
-    results
-)
 
+if __name__ == "__main__":
 
-# ============================================================
-# PREDICCIONES
-# ============================================================
-
-predictor = Predictor()
-
-predictions = predictor.predict(
-    features
-)
-
-
-# ============================================================
-# ELITE ENGINE
-# ============================================================
-
-elite = EliteEngine().build(
-    predictions,
-    metrics
-)
-
-
-# ============================================================
-# RANKING
-# ============================================================
-
-ranking = build_global_ranking(draws)
-
-
-# ============================================================
-# REPORTE
-# ============================================================
-
-report = build_report(
-
-    elite,
-
-    metrics,
-
-    ranking
-
-)
-
-
-# ============================================================
-# UI
-# ============================================================
-
-render_kpis(
-
-    total_draws,
-
-    len(strategies),
-
-    report["summary"]["best_strategy"]
-
-)
-
-render_status(
-
-    boot,
-
-    update,
-
-    total_draws
-
-)
-
-
-st.divider()
-
-st.subheader("🎯 Ticket Elite")
-
-st.success(
-
-    report["ticket"]["elite"]
-
-)
-
-
-st.divider()
-
-st.subheader("⚖️ Pesos del Modelo")
-
-st.json(
-
-    report["weights"]
-
-)
-
-
-st.divider()
-
-st.subheader("📈 Métricas")
-
-st.json(
-
-    report["metrics"]
-
-)
-
-
-st.divider()
-
-render_ranking(
-
-    report["ranking"]
-
-)
+    main()
