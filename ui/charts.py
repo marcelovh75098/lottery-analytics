@@ -1,76 +1,58 @@
-import pandas as pd
 import plotly.express as px
-import streamlit as st
+import pandas as pd
 
 
-def ranking_chart(ranking):
-    """
-    Muestra el Top 20 del ranking global.
-    """
-
-    df = pd.DataFrame(ranking[:20])
+def frequency_chart(df):
 
     fig = px.bar(
         df,
-        x="number",
-        y="score",
-        text="score",
-        title="🏆 Top 20 Ranking Global",
-        labels={
-            "number": "Número",
-            "score": "Score"
-        }
-    )
-
-    fig.update_traces(
-        texttemplate="%{text:.2f}",
-        textposition="outside"
+        x="numero",
+        y="frecuencia",
+        text="frecuencia"
     )
 
     fig.update_layout(
-        height=550,
-        xaxis_title="Número",
-        yaxis_title="Score",
-        showlegend=False
+        template="plotly_dark",
+        height=420,
+        margin=dict(l=10, r=10, t=30, b=10),
+        paper_bgcolor="#0F172A",
+        plot_bgcolor="#0F172A"
     )
 
-    st.plotly_chart(
-        fig,
-        use_container_width=True
-    )
+    return fig
 
 
-def historical_table(ranking):
+def hot_numbers_chart(df):
 
-    df = pd.DataFrame(ranking)
-
-    st.dataframe(
-
+    fig = px.scatter(
         df,
-
-        use_container_width=True,
-
-        hide_index=True
-
+        x="numero",
+        y="score",
+        size="score",
+        color="score",
+        template="plotly_dark",
+        height=420
     )
 
+    fig.update_layout(
+        paper_bgcolor="#0F172A",
+        plot_bgcolor="#0F172A"
+    )
 
-def top10_cards(ranking):
+    return fig
 
-    st.subheader("⭐ Top 10 Números")
 
-    cols = st.columns(5)
+def parity_chart(data):
 
-    for i in range(10):
+    fig = px.pie(
+        names=["Pares","Impares"],
+        values=data,
+        hole=.65
+    )
 
-        with cols[i % 5]:
+    fig.update_layout(
+        template="plotly_dark",
+        paper_bgcolor="#0F172A"
+    )
 
-            st.metric(
-
-                f"#{i+1}",
-
-                ranking[i]["number"],
-
-                f'{ranking[i]["score"]:.2f}'
-
-            )
+    return fig
