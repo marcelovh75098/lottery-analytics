@@ -1,71 +1,36 @@
 from collections import defaultdict
 
 
-def build_consensus(predictions):
+def weighted_consensus(predictions, weights):
     """
-    ==================================================
-    WEIGHTED CONSENSUS ENGINE
-    ==================================================
-
-    Asigna puntuación considerando:
-
-    - Calidad histórica de la estrategia
-    - Posición dentro de la predicción
-
-    Momentum      -> peso 5
-    Hot Numbers   -> peso 4
-    Cold Numbers  -> peso 3
-    Meta          -> peso 2
-    Frequency     -> peso 1
-
-    Además:
-
-    posición 1 = +5
-    posición 2 = +4
-    posición 3 = +3
-    posición 4 = +2
-    posición 5 = +1
-
-    El resultado es un ranking mucho más robusto.
-    ==================================================
+    Une todas las estrategias
+    mediante voto ponderado.
     """
-
-    strategy_weights = {
-
-        "momentum": 5,
-
-        "hot_numbers": 4,
-
-        "cold_numbers": 3,
-
-        "meta_portfolio": 2,
-
-        "frequency": 1
-
-    }
 
     scores = defaultdict(float)
 
-    for strategy_name, numbers in predictions.items():
+    for strategy, ticket in predictions.items():
 
-        strategy_weight = strategy_weights.get(
-            strategy_name,
-            1
-        )
+        weight = weights.get(strategy, 0)
 
-        for position, number in enumerate(numbers):
+        for number in ticket:
 
-            rank_bonus = 5 - position
+            scores[number] += weight
 
-            scores[number] += (
-                strategy_weight *
-                rank_bonus
-            )
+    ranking = sorted(
 
-    ranked = sorted(
         scores.items(),
+
         key=lambda x: x[1],
+
         reverse=True
+
     )
 
-    return dict(ranked)
+    return [
+
+        n
+
+        for n, _ in ranking[:5]
+
+    ]
