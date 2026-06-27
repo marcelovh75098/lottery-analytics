@@ -1,36 +1,22 @@
+import re
 import requests
+
 from bs4 import BeautifulSoup
 
-URL = "https://www.baloto.com/resultados"
 
-
-def _to_int(text):
-    """
-    Convierte un texto en entero.
-    Si no es posible retorna None.
-    """
-
-    try:
-        return int(text.strip())
-    except:
-        return None
+URL = "https://baloto.com/resultados?page=1"
 
 
 def obtener_ultimo_sorteo():
     """
-    Obtiene el último sorteo publicado.
-
-    Devuelve un diccionario uniforme que será usado
-    por el resto del motor.
+    Obtiene el último sorteo publicado
+    desde la página oficial de Baloto.
     """
 
     try:
 
         headers = {
-            "User-Agent": (
-                "Mozilla/5.0 "
-                "(Windows NT 10.0; Win64; x64)"
-            )
+            "User-Agent": "Mozilla/5.0"
         }
 
         response = requests.get(
@@ -46,75 +32,77 @@ def obtener_ultimo_sorteo():
             "html.parser"
         )
 
-        tablas = soup.find_all("table")
+        tabla = soup.find(
+            "table",
+            id="results-table"
+        )
 
-        if not tablas:
-
-            return {
-                "success": False,
-                "error": "No se encontraron tablas."
-            }
-
-        tabla = tablas[0]
-
-        filas = tabla.find_all("tr")
-
-        if len(filas) < 2:
+        if tabla is None:
 
             return {
                 "success": False,
-                "error": "No existen filas."
+                "error": "No existe la tabla."
             }
 
-        for fila in filas[1:]:
+        fila = tabla.find("tbody").find("tr")
 
-            td = fila.find_all("td")
+        columnas = fila.find_all("td")
 
-            if len(td) < 9:
-                continue
+        fecha = columnas[1].get_text(strip=True)
 
-            resultado = {
+        texto = columnas[2].get_text(
+            " ",
+            strip=True
+        )
 
-                "success": True,
+        numeros = list(
+            map(
+                int,
+                re.findall(r"\d+", texto)
+            )
+        )
 
-                "tipo_sorteo": td[0].get_text(strip=True),
+        if len(numeros) != 6:
 
-                "sorteo_id": _to_int(
-                    td[1].get_text(strip=True)
-                ),
-
-                "draw_date": td[2].get_text(strip=True),
-
-                "n1": _to_int(td[3].get_text(strip=True)),
-                "n2": _to_int(td[4].get_text(strip=True)),
-                "n3": _to_int(td[5].get_text(strip=True)),
-                "n4": _to_int(td[6].get_text(strip=True)),
-                "n5": _to_int(td[7].get_text(strip=True)),
-
-                "superbalota": _to_int(
-                    td[8].get_text(strip=True)
-                )
+            return {
+                "success": False,
+                "error": "No se pudieron leer las balotas."
             }
 
-            if None not in (
-                resultado["n1"],
-                resultado["n2"],
-                resultado["n3"],
-                resultado["n4"],
-                resultado["n5"],
-                resultado["superbalota"]
-            ):
+        enlace = columnas[3].find("a")
 
-                return resultado
+        href = enlace["href"]
+
+        sorteo = int(
+            href.rstrip("/").split("/")[-1]
+        )
 
         return {
-            "success": False,
-            "error": "No se encontró un sorteo válido."
+
+            "success": True,
+
+            "tipo_sorteo": "Baloto",
+
+            "sorteo_id": sorteo,
+
+            "draw_date": fecha,
+
+            "n1": numeros[0],
+            "n2": numeros[1],
+            "n3": numeros[2],
+            "n4": numeros[3],
+            "n5": numeros[4],
+
+            "superbalota": numeros[5]
+
         }
 
     except Exception as e:
 
         return {
+
             "success": False,
+
             "error": str(e)
+
         }
