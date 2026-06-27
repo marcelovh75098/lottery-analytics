@@ -8,22 +8,25 @@ from database.db import (
 
 from engine.bootstrap import bootstrap_if_empty
 from engine.update_database import actualizar_base_datos
+from engine.features import build_features
 from engine.backtester import backtest
 from engine.portfolio import build_portfolio
 from engine.ranking import build_global_ranking
+from engine.strategy_manager import load_strategies
+from engine.predictor import Predictor
+from engine.elite import EliteEngine
+from engine.report import build_report
 
 from ui.dashboard import load_theme
-from ui.cards import metric_cards
 from ui.sidebar import render_sidebar
-from ui.charts import (
-    ranking_chart,
-    historical_table,
-    top10_cards
-)
+from ui.kpi import render_kpis
+from ui.status import render_status
+from ui.ranking_table import render_ranking
 
-# ==================================================
+
+# ============================================================
 # CONFIGURACIÓN
-# ==================================================
+# ============================================================
 
 st.set_page_config(
     page_title="Lottery Quant Engine",
@@ -32,14 +35,15 @@ st.set_page_config(
 )
 
 load_theme()
+
 render_sidebar()
 
 st.title("🎯 Lottery Quant Engine")
 
 
-# ==================================================
+# ============================================================
 # BASE DE DATOS
-# ==================================================
+# ============================================================
 
 init_db()
 
@@ -51,96 +55,146 @@ draws = get_all_draws()
 
 total_draws = get_total_draws()
 
-ranking = build_global_ranking(draws)
-
-
-# ==================================================
-# PANEL
-# ==================================================
-
-st.subheader("Engine Status")
-
-st.json({
-    "bootstrap": boot,
-    "database_update": update,
-    "draws_loaded": total_draws
-})
-
-
-# ==================================================
-# VALIDACIÓN
-# ==================================================
-
 if total_draws < 3:
+
     st.error("Dataset insuficiente.")
+
     st.stop()
 
 
-# ==================================================
-# ESTRATEGIA
-# ==================================================
+# ============================================================
+# FEATURES
+# ============================================================
 
-class FrequencyStrategy:
-
-    def name(self):
-        return "frequency"
-
-    def predict(self, features):
-
-        freq = features["frequency"]
-
-        return sorted(
-            freq,
-            key=freq.get,
-            reverse=True
-        )[:5]
+features = build_features(draws)
 
 
-strategies = [
-    FrequencyStrategy()
-]
+# ============================================================
+# ESTRATEGIAS
+# ============================================================
+
+strategies = load_strategies()
+
+
+# ============================================================
+# BACKTEST
+# ============================================================
 
 results = backtest(
     strategies,
     draws
 )
 
-portfolio, metrics = build_portfolio(results)
-
-
-# ==================================================
-# MÉTRICAS
-# ==================================================
-
-metric_cards(
-    total_draws,
-    len(strategies),
-    portfolio[0]
+portfolio, metrics = build_portfolio(
+    results
 )
 
 
-# ==================================================
-# RESULTADOS
-# ==================================================
+# ============================================================
+# PREDICCIONES
+# ============================================================
 
-st.subheader("Portfolio")
+predictor = Predictor()
 
-st.write(portfolio)
+predictions = predictor.predict(
+    features
+)
 
-st.subheader("Métricas")
 
-st.write(metrics)
+# ============================================================
+# ELITE ENGINE
+# ============================================================
+
+elite = EliteEngine().build(
+    predictions,
+    metrics
+)
+
+
+# ============================================================
+# RANKING
+# ============================================================
+
+ranking = build_global_ranking(draws)
+
+
+# ============================================================
+# REPORTE
+# ============================================================
+
+report = build_report(
+
+    elite,
+
+    metrics,
+
+    ranking
+
+)
+
+
+# ============================================================
+# UI
+# ============================================================
+
+render_kpis(
+
+    total_draws,
+
+    len(strategies),
+
+    report["summary"]["best_strategy"]
+
+)
+
+render_status(
+
+    boot,
+
+    update,
+
+    total_draws
+
+)
+
 
 st.divider()
 
-top10_cards(ranking)
+st.subheader("🎯 Ticket Elite")
+
+st.success(
+
+    report["ticket"]["elite"]
+
+)
+
 
 st.divider()
 
-ranking_chart(ranking)
+st.subheader("⚖️ Pesos del Modelo")
+
+st.json(
+
+    report["weights"]
+
+)
+
 
 st.divider()
 
-st.subheader("📊 Ranking Completo")
+st.subheader("📈 Métricas")
 
-historical_table(ranking)
+st.json(
+
+    report["metrics"]
+
+)
+
+
+st.divider()
+
+render_ranking(
+
+    report["ranking"]
+
+)
