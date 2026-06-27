@@ -11,9 +11,12 @@ from engine.update_database import actualizar_base_datos
 from engine.backtester import backtest
 from engine.portfolio import build_portfolio
 from engine.ranking import build_global_ranking
+
 from ui.dashboard import load_theme
 from ui.cards import metric_cards
 from ui.sidebar import render_sidebar
+
+
 # ==================================================
 # CONFIGURACIÓN
 # ==================================================
@@ -24,16 +27,11 @@ st.set_page_config(
     layout="wide"
 )
 
+load_theme()
+render_sidebar()
+
 st.title("🎯 Lottery Quant Engine")
-metric_cards(
 
-    total_draws,
-
-    len(strategies),
-
-    portfolio[0]
-
-)
 
 # ==================================================
 # BASE DE DATOS
@@ -50,8 +48,10 @@ draws = get_all_draws()
 total_draws = get_total_draws()
 
 ranking = build_global_ranking(draws)
+
+
 # ==================================================
-# PANEL DE ESTADO
+# PANEL
 # ==================================================
 
 st.subheader("Engine Status")
@@ -73,7 +73,7 @@ if total_draws < 3:
 
 
 # ==================================================
-# ESTRATEGIA FRECUENCIA
+# ESTRATEGIA
 # ==================================================
 
 class FrequencyStrategy:
@@ -92,34 +92,42 @@ class FrequencyStrategy:
         )[:5]
 
 
+strategies = [
+    FrequencyStrategy()
+]
+
+results = backtest(
+    strategies,
+    draws
+)
+
+portfolio, metrics = build_portfolio(results)
+
+
 # ==================================================
-# EJECUCIÓN DEL MOTOR
+# MÉTRICAS
 # ==================================================
 
-if st.button("Run Engine"):
+metric_cards(
+    total_draws,
+    len(strategies),
+    portfolio[0]
+)
 
-    strategies = [
-        FrequencyStrategy()
-    ]
 
-    results = backtest(
-        strategies,
-        draws
-    )
+# ==================================================
+# RESULTADOS
+# ==================================================
 
-    portfolio, metrics = build_portfolio(
-        results
-    )
+st.subheader("Portfolio")
 
-    st.subheader("Ranking")
+st.write(portfolio)
 
-    st.write(portfolio)
+st.subheader("Métricas")
 
-    st.subheader("Métricas")
+st.write(metrics)
 
-    st.write(metrics)
 st.subheader("Global Ranking")
 
 for row in ranking[:20]:
-
     st.json(row)
