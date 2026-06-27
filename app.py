@@ -15,7 +15,11 @@ from engine.ranking import build_global_ranking
 from ui.dashboard import load_theme
 from ui.cards import metric_cards
 from ui.sidebar import render_sidebar
-
+from ui.charts import (
+    ranking_chart,
+    historical_table,
+    top10_cards
+)
 
 # ==================================================
 # CONFIGURACIÓN
@@ -127,7 +131,16 @@ st.subheader("Métricas")
 
 st.write(metrics)
 
-st.subheader("Global Ranking")
+st.divider()
 
-for row in ranking[:20]:
-    st.json(row)
+top10_cards(ranking)
+
+st.divider()
+
+ranking_chart(ranking)
+
+st.divider()
+
+st.subheader("📊 Ranking Completo")
+
+historical_table(ranking)
