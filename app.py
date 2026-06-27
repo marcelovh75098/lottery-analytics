@@ -11,7 +11,9 @@ from engine.update_database import actualizar_base_datos
 from engine.backtester import backtest
 from engine.portfolio import build_portfolio
 from engine.ranking import build_global_ranking
-
+from ui.dashboard import load_theme
+from ui.cards import metric_cards
+from ui.sidebar import render_sidebar
 # ==================================================
 # CONFIGURACIÓN
 # ==================================================
@@ -23,7 +25,15 @@ st.set_page_config(
 )
 
 st.title("🎯 Lottery Quant Engine")
+metric_cards(
 
+    total_draws,
+
+    len(strategies),
+
+    portfolio[0]
+
+)
 
 # ==================================================
 # BASE DE DATOS
