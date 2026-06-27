@@ -62,3 +62,26 @@ hr{
 border-color:#334155;
 
 }
+.js-plotly-plot{
+
+border-radius:18px;
+
+overflow:hidden;
+
+border:1px solid #334155;
+
+box-shadow:0 8px 25px rgba(0,0,0,.35);
+
+}
+
+div[data-testid="metric-container"]{
+
+transition:.25s;
+
+}
+
+div[data-testid="metric-container"]:hover{
+
+transform:translateY(-4px);
+
+}
