@@ -10,7 +10,7 @@ from engine.bootstrap import bootstrap_if_empty
 from engine.update_database import actualizar_base_datos
 from engine.backtester import backtest
 from engine.portfolio import build_portfolio
-
+from engine.ranking import build_global_ranking
 
 # ==================================================
 # CONFIGURACIÓN
@@ -39,7 +39,7 @@ draws = get_all_draws()
 
 total_draws = get_total_draws()
 
-
+ranking = build_global_ranking(draws)
 # ==================================================
 # PANEL DE ESTADO
 # ==================================================
@@ -108,3 +108,8 @@ if st.button("Run Engine"):
     st.subheader("Métricas")
 
     st.write(metrics)
+st.subheader("Global Ranking")
+
+for row in ranking[:20]:
+
+    st.json(row)
